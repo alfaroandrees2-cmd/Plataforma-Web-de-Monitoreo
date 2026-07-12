@@ -64,12 +64,12 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
       <div className="panel-header mb-4">
         <SmartphoneIcon />
         <div className="panel-header-copy">
-          <span className="text-sm text-muted">AgroApp</span>
+          <span className="text-sm text-muted">Operaciones móviles</span>
           <span className="font-semibold">Telemetría de Campo (Región Piura)</span>
         </div>
       </div>
       <p className="text-muted mb-6">
-        El operador completa el formulario de AgroApp con datos agrícolas y lo envía al centro de monitoreo.
+        El operador completa el formulario con datos agrícolas y lo envía al centro de monitoreo.
         Si la conectividad falla, el SDK registra el evento crítico y genera la alerta correspondiente.
       </p>
 
@@ -81,7 +81,7 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
           <div className="mobile-screen">
             <div className="mobile-header">
               <div>
-                <div className="mobile-title">AgroApp</div>
+                <div className="mobile-title">Registro Móvil</div>
                 <div className="mobile-subtitle">Registro de Campo</div>
               </div>
               <div className="mobile-badge">Piura</div>
@@ -128,7 +128,7 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
                 <div className="crash-dialog">
                   <AlertTriangle size={32} className="text-[#b91c1c] mx-auto mb-2" />
                   <h3 className="font-bold mb-1">Error en la aplicación</h3>
-                  <p className="text-sm text-gray-600">AgroApp no pudo completar el envío. Revisa la conexión y vuelve a intentar.</p>
+                  <p className="text-sm text-gray-600">No se pudo completar el envío. Revisa la conexión y vuelve a intentar.</p>
                 </div>
               )}
             </div>

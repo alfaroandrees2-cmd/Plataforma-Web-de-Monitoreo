@@ -30,9 +30,13 @@ app.get('/api/health', (req, res) => {
 app.get('/api/incidentes', async (req, res) => {
   try {
     const incidentes = await prisma.incidente.findMany({
+      orderBy: {
+        fecha_creacion: 'desc'
+      },
       include: {
         Alerta: true,
         EquipoSoporte: true,
+        TicketIncidentes: true,
       }
     });
     res.json(incidentes);
@@ -96,14 +100,29 @@ app.post('/api/simular-crash', async (req, res) => {
         alerta_id: alerta.alerta_id,
         equipo_id: equipo.equipo_id,
         sla_id: sla.sla_id,
-      },
-      include: {
-        Alerta: true,
-        EquipoSoporte: true,
       }
     });
 
-    res.json(nuevoIncidente);
+    // 5. Crear Ticket de Incidente vinculado
+    const nuevoTicket = await prisma.ticketIncidente.create({
+      data: {
+        numero: `TCK-${localNow().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
+        estado_ticket: 'ABIERTO',
+        canal_origen: 'NOC',
+        incidente_id: nuevoIncidente.incidente_id,
+      }
+    });
+
+    const incidenteConTicket = await prisma.incidente.findUnique({
+      where: { incidente_id: nuevoIncidente.incidente_id },
+      include: {
+        Alerta: true,
+        EquipoSoporte: true,
+        TicketIncidentes: true,
+      }
+    });
+
+    res.json({ incidente: incidenteConTicket, ticket: nuevoTicket });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error simulando crash' });
@@ -218,6 +237,28 @@ app.post('/api/incidentes/resolver', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error resolviendo incidentes' });
+  }
+});
+
+app.post('/api/login', async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Usuario y contraseña son requeridos' });
+    }
+
+    const validUsername = 'admin';
+    const validPassword = 'agro1234';
+
+    if (username === validUsername && password === validPassword) {
+      return res.json({ user: { username: 'admin', name: 'Operador Monitoreo Operativo Móvil' } });
+    }
+
+    return res.status(401).json({ error: 'Usuario o contraseña incorrectos' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error procesando el login' });
   }
 });
 

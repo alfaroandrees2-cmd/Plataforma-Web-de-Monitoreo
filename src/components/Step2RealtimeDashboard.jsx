@@ -12,18 +12,33 @@ function Step2RealtimeDashboard() {
     resueltos: 0,
     tiempoPromedioMin: 0
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setError('');
       try {
         const res = await fetch('http://localhost:3001/api/metricas/dashboard');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
-        setData(json.chartData);
-        setIsDegraded(json.isDegraded);
-        setCurrentEvents(json.currentEventsPerMinute);
+        console.debug('dashboard payload', json);
+        const normalized = Array.isArray(json.chartData)
+          ? json.chartData.map((point, index) => ({
+              time: point.time != null ? String(point.time) : `T${index}`,
+              events: Number(point.events) || 0
+            }))
+          : [];
+        setData(normalized);
+        setIsDegraded(Boolean(json.isDegraded));
+        setCurrentEvents(Number(json.currentEventsPerMinute) || 0);
         if (json.stats) setStats(json.stats);
       } catch (err) {
-        console.error("Error fetching dashboard data:", err);
+        console.error('Error fetching dashboard data:', err);
+        setError('No se pudo cargar el dashboard. Intenta nuevamente.');
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -180,31 +195,39 @@ function Step2RealtimeDashboard() {
         </div>
 
         <div className="flex-1 min-h-0">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={isDegraded ? "#f87171" : "#7dd3fc"} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={isDegraded ? "#f87171" : "#7dd3fc"} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis dataKey="time" stroke="#94a3b8" tickLine={false} axisLine={false} dy={10} />
-              <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} dx={-10} />
-              <Tooltip
-                contentStyle={{ backgroundColor: 'rgba(10,10,15,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                itemStyle={{ color: '#fff', fontWeight: 'bold' }}
-              />
-              <Area
-                type="monotone"
-                dataKey="events"
-                stroke={isDegraded ? "#FF2A5F" : "#00F0FF"}
-                strokeWidth={4}
-                fill="url(#colorEvents)"
-                activeDot={{ r: 8, fill: isDegraded ? "#FF2A5F" : "#00F0FF", stroke: '#000', strokeWidth: 2 }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
+          {loading ? (
+            <div className="h-full flex items-center justify-center text-muted">Cargando métricas...</div>
+          ) : error ? (
+            <div className="h-full flex items-center justify-center text-[#f87171]">{error}</div>
+          ) : data.length === 0 ? (
+            <div className="h-full flex items-center justify-center text-muted">No hay datos de eventos disponibles.</div>
+          ) : (
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor={isDegraded ? '#f87171' : '#7dd3fc'} stopOpacity={0.3} />
+                    <stop offset="95%" stopColor={isDegraded ? '#f87171' : '#7dd3fc'} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                <XAxis dataKey="time" stroke="#94a3b8" tickLine={false} axisLine={false} dy={10} />
+                <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} dx={-10} />
+                <Tooltip
+                  contentStyle={{ backgroundColor: 'rgba(10,10,15,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                  itemStyle={{ color: '#fff', fontWeight: 'bold' }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="events"
+                  stroke={isDegraded ? '#FF2A5F' : '#00F0FF'}
+                  strokeWidth={4}
+                  fill="url(#colorEvents)"
+                  activeDot={{ r: 8, fill: isDegraded ? '#FF2A5F' : '#00F0FF', stroke: '#000', strokeWidth: 2 }}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
     </div>

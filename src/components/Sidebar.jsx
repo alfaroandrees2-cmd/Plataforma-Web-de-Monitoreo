@@ -9,12 +9,12 @@ const steps = [
   { id: 5, label: 'Resolución y Normalización', icon: <CheckCircle2 size={18} /> },
 ];
 
-function Sidebar({ activeStep, setActiveStep }) {
+function Sidebar({ activeStep, setActiveStep, user, onLogout }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-title">
         <Activity color="var(--accent-cyan)" />
-        <span>Monitoreo Operativo Móvil</span>
+        <span>Panel de navegación</span>
       </div>
       
       <nav className="step-nav">
@@ -29,6 +29,18 @@ function Sidebar({ activeStep, setActiveStep }) {
           </button>
         ))}
       </nav>
+
+      {user && (
+        <div className="sidebar-footer">
+          <div className="user-info">
+            <span className="user-badge">{user.username}</span>
+            <p className="sidebar-user-label">Administrador</p>
+          </div>
+          <button className="btn-ghost sidebar-logout" onClick={onLogout}>
+            Cerrar sesión
+          </button>
+        </div>
+      )}
     </aside>
   );
 }

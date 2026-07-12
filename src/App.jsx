@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
+import Login from './components/Login';
 import Step1MobileCrash from './components/Step1MobileCrash';
 import Step2RealtimeDashboard from './components/Step2RealtimeDashboard';
 import Step3IncidentManagement from './components/Step3IncidentManagement';
@@ -22,6 +23,15 @@ function App() {
       };
     } catch {
       return { crashed: false, resolved: false, crashCount: 0, timestamp: null };
+    }
+  });
+
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
     }
   });
 
@@ -68,10 +78,28 @@ function App() {
     }
   };
 
+  const handleLogin = (userData) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
+
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
+  }
 
   return (
     <div className="app-container">
-      <Sidebar activeStep={activeStep} setActiveStep={handleSetActiveStep} />
+      <Sidebar
+        activeStep={activeStep}
+        setActiveStep={handleSetActiveStep}
+        user={user}
+        onLogout={handleLogout}
+      />
       
       <main className="main-content">
         {activeStep === 1 && (

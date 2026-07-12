@@ -216,6 +216,17 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
                       </pre>
                     </div>
                   )}
+
+                  {incidente.TicketIncidentes && incidente.TicketIncidentes.length > 0 && (
+                    <div className="log-box mt-4">
+                      <h4 className="text-xs font-bold text-muted mb-2">Ticket asociado</h4>
+                      <div className="text-sm text-slate-200 space-y-1">
+                        <p><strong>Número:</strong> {incidente.TicketIncidentes[0].numero}</p>
+                        <p><strong>Canal:</strong> {incidente.TicketIncidentes[0].canal_origen}</p>
+                        <p><strong>Estado:</strong> {incidente.TicketIncidentes[0].estado_ticket}</p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
