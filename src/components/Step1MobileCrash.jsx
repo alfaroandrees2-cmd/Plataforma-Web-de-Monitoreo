@@ -126,9 +126,9 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
 
               {simState.crashed && (
                 <div className="crash-dialog">
-                  <AlertTriangle size={32} className="text-red mx-auto mb-2" />
-                  <h3 className="font-bold mb-1">La aplicación se ha detenido</h3>
-                  <p className="text-sm text-gray-600">AgroApp dejó de funcionar inesperadamente.</p>
+                  <AlertTriangle size={32} className="text-[#b91c1c] mx-auto mb-2" />
+                  <h3 className="font-bold mb-1">Error en la aplicación</h3>
+                  <p className="text-sm text-gray-600">AgroApp no pudo completar el envío. Revisa la conexión y vuelve a intentar.</p>
                 </div>
               )}
             </div>
@@ -138,7 +138,7 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
                 onClick={handleSync}
                 disabled={syncing || simState.crashed}
               >
-                <RefreshCw size={18} className={syncing ? 'animate-spin' : ''} />
+                <RefreshCw size={18} />
                 {syncing ? 'Enviando...' : 'Enviar Formulario'}
               </button>
             </div>
@@ -161,15 +161,15 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
           
           {simState.crashed && logs.length > 5 && (
             <div className="mt-6">
-              <div className="bg-red-900/20 border border-red-500 p-4 rounded-lg">
-                <h4 className="text-red font-bold mb-2">Evento Crítico Capturado</h4>
-                <p className="text-sm">Metadata enviada a NOC: Dispositivo (Samsung S21), SO (Android 12), Región (Piura).</p>
+              <div className="bg-[#381b1f] border border-[#fca5a5] p-4 rounded-lg">
+                <h4 className="text-[#f87171] font-bold mb-2">Evento Crítico Capturado</h4>
+                <p className="text-sm text-slate-200">Metadata enviada a NOC: Dispositivo (Samsung S21), SO (Android 12), Región (Piura).</p>
                 <div className="flex gap-3 mt-4">
                   <button 
                     onClick={nextStep}
-                    className="flex-1 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded transition-colors"
+                    className="flex-1 bg-[#933b3b] hover:bg-[#a85555] text-white px-4 py-2 rounded transition-colors"
                   >
-                    Ver Impacto en Dashboard NOC &rarr;
+                    Ver impacto en el dashboard NOC →
                   </button>
                   <button 
                     onClick={handleReset}

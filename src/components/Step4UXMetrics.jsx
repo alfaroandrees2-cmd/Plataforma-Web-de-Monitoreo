@@ -62,46 +62,43 @@ function Step4UXMetrics() {
   const successRate = isDegraded ? '75.0' : '99.9';
 
   return (
-    <div className="flex flex-col h-full animate-fade-in">
+    <div className="flex flex-col h-full">
       <div className="panel-header mb-6">
-        <Activity color="var(--accent-orange)" /> Degradación de UX y SLA
+        <Activity color="var(--text-main)" /> Degradación de UX y SLA
       </div>
       
       <div className="flex gap-6 mb-6">
-        <div className={`panel flex-1 metric-card relative overflow-hidden ${isDegraded ? 'border-red-500/50' : ''}`}>
-          {isDegraded && <div className="absolute inset-0 bg-red-900/10 pointer-events-none"></div>}
-          <div className="flex items-center gap-2 text-muted text-xs font-bold tracking-widest uppercase mb-2 relative z-10">
+        <div className={`panel flex-1 metric-card ${isDegraded ? 'border-red-400/10' : ''}`}>
+          <div className="flex items-center gap-2 text-muted text-xs font-semibold uppercase mb-2">
             <Clock size={16} /> TIEMPO DE RESPUESTA
           </div>
-          <div className="metric-value relative z-10">
+          <div className="metric-value">
             <span className={isDegraded ? 'text-red' : 'text-main'}>{currentRespTime}</span>
             <span className="text-lg text-muted ml-1">s</span>
           </div>
-          {isDegraded && <div className="text-xs text-red mt-2 font-bold relative z-10">↑ Degradado (+600%)</div>}
+          {isDegraded && <div className="text-xs text-red mt-2">Revisión activa</div>}
         </div>
 
-        <div className={`panel flex-1 metric-card relative overflow-hidden ${isDegraded ? 'border-orange-500/50' : ''}`}>
-          {isDegraded && <div className="absolute inset-0 bg-orange-900/10 pointer-events-none"></div>}
-          <div className="flex items-center gap-2 text-muted text-xs font-bold tracking-widest uppercase mb-2 relative z-10">
+        <div className={`panel flex-1 metric-card ${isDegraded ? 'border-orange-400/10' : ''}`}>
+          <div className="flex items-center gap-2 text-muted text-xs font-semibold uppercase mb-2">
             <TrendingDown size={16} /> TASA DE ÉXITO
           </div>
-          <div className="metric-value relative z-10">
+          <div className="metric-value">
             <span className={isDegraded ? 'text-orange' : 'text-main'}>{successRate}</span>
             <span className="text-lg text-muted ml-1">%</span>
           </div>
-          {isDegraded && <div className="text-xs text-orange mt-2 font-bold relative z-10">↓ Caída Crítica</div>}
+          {isDegraded && <div className="text-xs text-orange mt-2">Bajo observación</div>}
         </div>
 
-        <div className={`panel flex-1 metric-card relative overflow-hidden ${isDegraded ? 'border-red-500/50 pulse-alert' : ''}`}>
-           {isDegraded && <div className="absolute inset-0 bg-red-900/20 pointer-events-none"></div>}
-          <div className="flex items-center gap-2 text-muted text-xs font-bold tracking-widest uppercase mb-2 relative z-10">
+        <div className={`panel flex-1 metric-card ${isDegraded ? 'border-red-400/10' : ''}`}>
+          <div className="flex items-center gap-2 text-muted text-xs font-semibold uppercase mb-2">
             <Percent size={16} /> DISPONIBILIDAD SLA
           </div>
-          <div className="metric-value relative z-10">
+          <div className="metric-value">
             <span className={isDegraded ? 'text-red' : 'text-main'}>{currentAvail}</span>
             <span className="text-lg text-muted ml-1">%</span>
           </div>
-          {isDegraded && <div className="text-xs text-red font-bold mt-2 relative z-10">ALERTA DE SLA INCUMPLIDO</div>}
+          {isDegraded && <div className="text-xs text-red mt-2">SLA en revisión</div>}
         </div>
       </div>
 
@@ -112,21 +109,21 @@ function Step4UXMetrics() {
             <AreaChart data={uxData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorAvail" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={isDegraded ? "#FF2A5F" : "#00FF87"} stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor={isDegraded ? "#FF2A5F" : "#00FF87"} stopOpacity={0}/>
+                  <stop offset="5%" stopColor={isDegraded ? "#fca5a5" : "#86efac"} stopOpacity={0.25}/>
+                  <stop offset="95%" stopColor={isDegraded ? "#fca5a5" : "#86efac"} stopOpacity={0}/>
                 </linearGradient>
               </defs>
               <XAxis dataKey="time" stroke="#94a3b8" tickLine={false} axisLine={false} dy={10} />
               <YAxis yAxisId="left" domain={[80, 100]} stroke="#94a3b8" tickLine={false} axisLine={false} dx={-10} />
               <YAxis yAxisId="right" orientation="right" stroke="#94a3b8" tickLine={false} axisLine={false} dx={10} />
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.08)" vertical={false} />
               <Tooltip 
-                contentStyle={{ backgroundColor: 'rgba(10,10,15,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
-                itemStyle={{ fontWeight: 'bold' }}
+                contentStyle={{ backgroundColor: 'rgba(15, 23, 42, 0.95)', borderColor: 'rgba(148,163,184,0.18)', borderRadius: '8px' }}
+                itemStyle={{ fontWeight: 'normal', color: '#e2e8f0' }}
               />
               
-              <Area yAxisId="left" type="monotone" dataKey="availability" stroke={isDegraded ? "#FF2A5F" : "#00FF87"} strokeWidth={3} fillOpacity={1} fill="url(#colorAvail)" name="Disponibilidad (%)" />
-              <Area yAxisId="right" type="monotone" dataKey="responseTime" stroke="#FF8C00" fill="none" strokeWidth={3} name="T. Respuesta (s)" />
+              <Area yAxisId="left" type="monotone" dataKey="availability" stroke={isDegraded ? "#f87171" : "#86efac"} strokeWidth={3} fillOpacity={1} fill="url(#colorAvail)" name="Disponibilidad (%)" />
+              <Area yAxisId="right" type="monotone" dataKey="responseTime" stroke="#fb923c" fill="none" strokeWidth={3} name="T. Respuesta (s)" />
             </AreaChart>
           </ResponsiveContainer>
         </div>

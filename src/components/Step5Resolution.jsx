@@ -71,9 +71,9 @@ function Step5Resolution({ simState, resolveIncident }) {
           
           {!hasActiveIncident ? (
             simState.resolved ? (
-              <div className="text-green flex flex-col items-center">
+              <div className="text-[#86efac] flex flex-col items-center">
                 <CheckCircle2 size={64} className="mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Incidente Resuelto Exitosamente</h2>
+                <h2 className="text-2xl font-bold mb-2">Incidente resuelto</h2>
                 <p className="text-muted text-sm">
                   La disponibilidad volvió a 99.6%. El incidente ha sido documentado
                   en la Base de Conocimientos de Errores Conocidos.
@@ -85,25 +85,24 @@ function Step5Resolution({ simState, resolveIncident }) {
           ) : (
             <div className="flex flex-col items-center w-full max-w-md">
               <div className="bg-[#0f172a] border border-border-color p-4 rounded-lg text-left w-full mb-6">
-                <h4 className="text-cyan font-bold mb-2">Detalle del Hotfix (v2.1.4)</h4>
+                <h4 className="text-slate-100 font-semibold mb-2">Hotfix v2.1.4</h4>
                 <p className="text-sm text-muted mb-3">
                   Incidentes activos: {activeIncidentsOpen.length} ({activeIncidentCodes})
                 </p>
                 <ul className="text-sm text-muted list-disc list-inside">
-                  <li>Implementación de paginación (50 registros/lote).</li>
-                  <li>Liberación proactiva de memoria con Garbage Collector tras cada lote.</li>
-                  <li>Reintento automático bajo conectividad inestable.</li>
+                  <li>Paginación de carga en lotes para reducir presión.</li>
+                  <li>Liberación de memoria al finalizar cada lote.</li>
+                  <li>Reintentos automáticos cuando la red es inestable.</li>
                 </ul>
               </div>
 
               <button 
                 onClick={handleDeploy}
                 disabled={deploying}
-                className="w-full bg-cyan-600 hover:bg-cyan-500 text-white py-3 px-6 rounded-lg font-bold text-lg flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                style={{ backgroundColor: deploying ? '#0e7490' : '#06b6d4' }}
+                className="w-full bg-slate-700 hover:bg-slate-600 text-white py-3 px-6 rounded-lg font-semibold text-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
               >
-                {deploying ? <RefreshIcon className="animate-spin" /> : <Play size={20} />}
-                {deploying ? 'Desplegando en Producción...' : 'Desplegar Hotfix a Dispositivos'}
+                <Play size={20} />
+                {deploying ? 'Desplegando...' : 'Desplegar hotfix'}
               </button>
             </div>
           )}
@@ -119,7 +118,7 @@ function Step5Resolution({ simState, resolveIncident }) {
             {deployLogs.map((log, i) => (
               <div key={i} className="mb-2">
                 <span className="text-gray-500">[{new Date().toLocaleTimeString()}]</span>{' '}
-                <span className={log.includes('PASSED') || log.includes('recuperado') ? 'text-green' : 'text-blue-300'}>
+                <span className={log.includes('PASSED') || log.includes('recuperado') ? 'text-[#86efac]' : 'text-muted'}>
                   {log}
                 </span>
               </div>

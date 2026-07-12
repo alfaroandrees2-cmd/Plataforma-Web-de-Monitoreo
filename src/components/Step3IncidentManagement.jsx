@@ -130,7 +130,7 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
             <button
               onClick={handleResolve}
               disabled={resolving || incidentes.filter(i => i.fecha_resolucion === '0' || i.fecha_resolucion === 0 || i.fecha_resolucion === null).length === 0}
-              className="bg-cyan-600 hover:bg-cyan-500 text-white py-2 px-4 rounded-lg font-semibold disabled:opacity-50"
+              className="bg-slate-700 hover:bg-slate-600 text-white py-2 px-4 rounded-lg font-semibold disabled:opacity-50"
             >
               {resolving ? 'Resolviendo...' : 'Resolver incidentes abiertos'}
             </button>
@@ -168,9 +168,9 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
                         <span className={badgeClass}>
                           PRIORIDAD: {incidente.prioridad}
                         </span>
-                        <span className="text-lg font-bold text-cyan" style={{ letterSpacing: '1px' }}>#{incidente.codigo}</span>
+                        <span className="text-lg font-bold text-slate-100" style={{ letterSpacing: '1px' }}>#{incidente.codigo}</span>
                       </div>
-                      <h3 className="text-2xl font-bold text-main mb-2" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+                      <h3 className="text-2xl font-bold text-main mb-2">
                         {incidente.titulo}
                       </h3>
                       <div className="flex items-center gap-4 text-sm text-muted mt-3">
@@ -178,7 +178,7 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
                         {incidente.EquipoSoporte && (
                           <span className="flex items-center gap-1"><User size={15} style={{ color: 'var(--accent-blue)' }}/> Asignado a: {incidente.EquipoSoporte.nombre}</span>
                         )}
-                        <span className="flex items-center gap-1"><Clock size={15} style={{ color: 'var(--accent-cyan)' }}/> {formatPeruTime(incidente.fecha_creacion)}</span>
+                        <span className="flex items-center gap-1"><Clock size={15} style={{ color: 'var(--text-muted)' }}/> {formatPeruTime(incidente.fecha_creacion)}</span>
                       </div>
                     </div>
 

@@ -33,9 +33,9 @@ function Step2RealtimeDashboard() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full animate-fade-in" style={{ gap: '1.25rem' }}>
+    <div className="flex flex-col h-full" style={{ gap: '1.25rem' }}>
       <div className="panel-header">
-        <Activity color="var(--accent-cyan)" /> Dashboard en Tiempo Real
+        <Activity color="var(--text-main)" /> Dashboard en tiempo real
       </div>
 
       {/* Fila 1: Estado del sistema */}
@@ -44,7 +44,7 @@ function Step2RealtimeDashboard() {
           <h3 className="text-muted text-xs font-bold tracking-widest uppercase">Eventos / min</h3>
           <div className="metric-value">
             {isDegraded
-              ? <span className="text-red pulse-alert px-3 py-1 rounded-lg">{currentEvents}</span>
+              ? <span className="text-[#f87171] px-3 py-1 rounded-lg bg-[#3f1f26]">{currentEvents}</span>
               : <span className="text-main">{currentEvents}</span>}
             <span className="text-lg text-muted ml-2 font-normal">req/m</span>
           </div>
@@ -52,13 +52,13 @@ function Step2RealtimeDashboard() {
         <div className="panel metric-card">
           <h3 className="text-muted text-xs font-bold tracking-widest uppercase">Estado Global</h3>
           <div className="metric-value">
-            {isDegraded ? <span className="text-red">CRÍTICO</span> : <span className="text-green">NORMAL</span>}
+            {isDegraded ? <span className="text-[#f87171]">CRÍTICO</span> : <span className="text-[#86efac]">NORMAL</span>}
           </div>
         </div>
         <div className="panel metric-card">
           <h3 className="text-muted text-xs font-bold tracking-widest uppercase">Foco de Anomalía</h3>
           <div className="metric-value flex items-center gap-3 text-2xl mt-3">
-            <MapPin size={28} className={isDegraded ? 'text-red' : 'text-green'} />
+            <MapPin size={28} className={isDegraded ? 'text-[#f87171]' : 'text-[#86efac]'} />
             {isDegraded ? 'Región Piura' : 'Ninguno'}
           </div>
         </div>
@@ -86,9 +86,9 @@ function Step2RealtimeDashboard() {
         {/* Abiertos */}
         <div className="panel" style={{
           background: stats.abiertos > 0
-            ? 'linear-gradient(135deg, rgba(255,42,95,0.15), rgba(255,42,95,0.03))'
-            : 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))',
-          border: stats.abiertos > 0 ? '1px solid rgba(255,42,95,0.3)' : '1px solid rgba(255,255,255,0.05)',
+            ? 'rgba(30, 18, 26, 0.95)'
+            : 'rgba(255,255,255,0.03)',
+          border: stats.abiertos > 0 ? '1px solid rgba(248,113,113,0.25)' : '1px solid rgba(255,255,255,0.05)',
           borderRadius: '1rem',
           padding: '1.25rem',
           position: 'relative',
@@ -107,8 +107,7 @@ function Step2RealtimeDashboard() {
           </div>
           <div style={{
             fontSize: '2.8rem', fontWeight: 800, fontFamily: 'Outfit', lineHeight: 1,
-            color: stats.abiertos > 0 ? '#ff2a5f' : 'var(--text-main)',
-            textShadow: stats.abiertos > 0 ? '0 0 20px rgba(255,42,95,0.4)' : 'none'
+            color: stats.abiertos > 0 ? '#fca5a5' : 'var(--text-main)'
           }}>
             {stats.abiertos}
           </div>
@@ -118,9 +117,9 @@ function Step2RealtimeDashboard() {
         {/* Resueltos */}
         <div className="panel" style={{
           background: stats.resueltos > 0
-            ? 'linear-gradient(135deg, rgba(0,255,135,0.1), rgba(0,255,135,0.02))'
-            : 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))',
-          border: stats.resueltos > 0 ? '1px solid rgba(0,255,135,0.2)' : '1px solid rgba(255,255,255,0.05)',
+            ? 'rgba(15, 28, 19, 0.95)'
+            : 'rgba(255,255,255,0.03)',
+          border: stats.resueltos > 0 ? '1px solid rgba(134,239,172,0.2)' : '1px solid rgba(255,255,255,0.05)',
           borderRadius: '1rem',
           padding: '1.25rem',
           position: 'relative',
@@ -139,8 +138,7 @@ function Step2RealtimeDashboard() {
           </div>
           <div style={{
             fontSize: '2.8rem', fontWeight: 800, fontFamily: 'Outfit', lineHeight: 1,
-            color: stats.resueltos > 0 ? '#00ff87' : 'var(--text-main)',
-            textShadow: stats.resueltos > 0 ? '0 0 20px rgba(0,255,135,0.4)' : 'none'
+            color: stats.resueltos > 0 ? '#86efac' : 'var(--text-main)'
           }}>
             {stats.resueltos}
           </div>
@@ -174,9 +172,9 @@ function Step2RealtimeDashboard() {
             Volumen de Eventos (App Móvil)
           </div>
           {isDegraded && (
-            <div className="bg-red-900/40 border border-red-500/50 text-red px-4 py-2 rounded-lg flex items-center gap-2 animate-pulse text-sm font-bold"
-              style={{ boxShadow: '0 0 15px rgba(255,42,95,0.3)' }}>
-              <AlertCircle size={18} /> PICO ANÓMALO: OutOfMemory
+            <div className="bg-[#3e1c24] border border-[#fca5a5] text-[#f87171] px-4 py-2 rounded-lg flex items-center gap-2 text-sm"
+              style={{ boxShadow: 'none' }}>
+              <AlertCircle size={18} /> PICO anómalo detectado
             </div>
           )}
         </div>
@@ -186,8 +184,8 @@ function Step2RealtimeDashboard() {
             <AreaChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={isDegraded ? "#FF2A5F" : "#00F0FF"} stopOpacity={0.4} />
-                  <stop offset="95%" stopColor={isDegraded ? "#FF2A5F" : "#00F0FF"} stopOpacity={0} />
+                  <stop offset="5%" stopColor={isDegraded ? "#f87171" : "#7dd3fc"} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={isDegraded ? "#f87171" : "#7dd3fc"} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
