@@ -14,7 +14,7 @@ function Sidebar({ activeStep, setActiveStep }) {
     <aside className="sidebar">
       <div className="sidebar-title">
         <Activity color="var(--accent-cyan)" />
-        <span>NOC Dashboard</span>
+        <span>Monitoreo Operativo Móvil</span>
       </div>
       
       <nav className="step-nav">

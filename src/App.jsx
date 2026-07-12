@@ -55,14 +55,17 @@ function App() {
 
   const resolveIncident = async () => {
     try {
-      await fetch('http://localhost:3001/api/incidentes/resolver', { method: 'POST' });
-      console.log("Incidentes resueltos en MySQL");
+      const response = await fetch('http://localhost:3001/api/incidentes/resolver', { method: 'POST' });
+      const result = await response.json();
+      console.log("Incidentes resueltos en MySQL", result);
+
+      const newState = { ...simState, resolved: true };
+      updateSimState(newState);
+      return result;
     } catch (err) {
       console.error("Error al resolver:", err);
+      return null;
     }
-
-    const newState = { ...simState, resolved: true };
-    updateSimState(newState);
   };
 
 
@@ -93,6 +96,7 @@ function App() {
         {activeStep === 3 && (
           <Step3IncidentManagement 
             simState={simState} 
+            resolveIncident={resolveIncident}
           />
         )}
         

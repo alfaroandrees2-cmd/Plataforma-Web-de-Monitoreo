@@ -1,6 +1,6 @@
-# React + Vite
+# Monitoreo Operativo Móvil
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Este proyecto es una plataforma web para monitorear inestabilidad operativa y degradación de la experiencia de usuario en aplicaciones móviles corporativas.
 
 Currently, two official plugins are available:
 

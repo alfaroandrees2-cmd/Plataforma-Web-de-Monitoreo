@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Ticket, User, Clock, AlertTriangle } from 'lucide-react';
 
-function Step3IncidentManagement({ simState }) {
+function Step3IncidentManagement({ simState, resolveIncident }) {
   const [incidentes, setIncidentes] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [resolving, setResolving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
 
   useEffect(() => {
     const fetchIncidentes = () => {
       fetch('http://localhost:3001/api/incidentes')
         .then(res => res.json())
         .then(data => {
-          // Filtrar si queremos mostrar todos, o solo los no resueltos.
-          // En este caso, mostraremos todos los que vengan del backend.
           setIncidentes(data);
           setLoading(false);
         })
@@ -28,6 +28,33 @@ function Step3IncidentManagement({ simState }) {
     return () => clearInterval(interval);
   }, []);
 
+  const handleResolve = async () => {
+    if (!resolveIncident) return;
+    setResolving(true);
+    setStatusMessage('Resolviendo incidentes abiertos...');
+
+    const result = await resolveIncident();
+
+    if (result && result.success) {
+      setStatusMessage(`Incidentes resueltos: ${result.count}`);
+      setLoading(true);
+      fetch('http://localhost:3001/api/incidentes')
+        .then(res => res.json())
+        .then(data => {
+          setIncidentes(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error fetching incidentes", err);
+          setLoading(false);
+        });
+    } else {
+      setStatusMessage('No se pudo resolver el incidente. Revisa el backend.');
+    }
+
+    setResolving(false);
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="panel-header mb-4">
@@ -39,10 +66,26 @@ function Step3IncidentManagement({ simState }) {
       </p>
 
       <div className="panel flex-1">
-        <div className="border-b border-border-color pb-4 mb-4 flex justify-between items-center">
-          <h2 className="text-xl font-bold">Cola de Incidentes Activos</h2>
-          <span className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">Mostrando: Abiertos</span>
+        <div className="border-b border-border-color pb-4 mb-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <h2 className="text-xl font-bold">Cola de Incidentes Activos</h2>
+            <span className="text-sm text-muted">Actualizado cada 3s desde el backend</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleResolve}
+              disabled={resolving || incidentes.filter(i => i.fecha_resolucion === '0' || i.fecha_resolucion === 0 || i.fecha_resolucion === null).length === 0}
+              className="bg-cyan-600 hover:bg-cyan-500 text-white py-2 px-4 rounded-lg font-semibold disabled:opacity-50"
+            >
+              {resolving ? 'Resolviendo...' : 'Resolver incidentes abiertos'}
+            </button>
+            <span className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">Mostrando: Abiertos</span>
+          </div>
         </div>
+
+        {statusMessage && (
+          <div className="mb-4 p-3 rounded-lg bg-slate-900 text-sm text-slate-100">{statusMessage}</div>
+        )}
 
         {loading && incidentes.length === 0 ? (
           <div className="text-center text-muted py-12">Cargando incidentes desde MySQL...</div>
@@ -53,7 +96,8 @@ function Step3IncidentManagement({ simState }) {
         ) : (
           <div className="flex flex-col gap-6">
             {incidentes.map(incidente => {
-              const isResolved = incidente.estado_incidente === 'RESUELTO' || simState.resolved;
+              // Un incidente está resuelto si su fecha_resolucion en MySQL es distinta de 0
+              const isResolved = incidente.fecha_resolucion !== '0' && incidente.fecha_resolucion !== 0 && incidente.fecha_resolucion !== null;
               const cardClass = isResolved ? 'incident-card resolved' : 'incident-card critical';
               const badgeClass = isResolved ? 'badge badge-resolved' : 'badge badge-critical';
               const stateText = isResolved ? 'RESUELTO' : 'ASIGNADO';
