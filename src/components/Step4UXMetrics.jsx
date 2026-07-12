@@ -68,34 +68,34 @@ function Step4UXMetrics() {
       </div>
       
       <div className="flex gap-6 mb-6">
-        <div className={`panel flex-1 metric-card ${isDegraded ? 'border-red-400/10' : ''}`}>
-          <div className="flex items-center gap-2 text-muted text-xs font-semibold uppercase mb-2">
+        <div className={`panel flex-1 metric-card ${isDegraded ? 'border-red-400/10' : ''}`} style={{ background: 'linear-gradient(180deg, rgba(192,132,252,0.14), rgba(15,23,42,0.03))' }}>
+          <div className="flex items-center gap-2 text-purple text-xs font-semibold uppercase mb-2">
             <Clock size={16} /> TIEMPO DE RESPUESTA
           </div>
           <div className="metric-value">
-            <span className={isDegraded ? 'text-red' : 'text-main'}>{currentRespTime}</span>
+            <span className={isDegraded ? 'text-red' : 'text-purple'}>{currentRespTime}</span>
             <span className="text-lg text-muted ml-1">s</span>
           </div>
           {isDegraded && <div className="text-xs text-red mt-2">Revisión activa</div>}
         </div>
 
-        <div className={`panel flex-1 metric-card ${isDegraded ? 'border-orange-400/10' : ''}`}>
-          <div className="flex items-center gap-2 text-muted text-xs font-semibold uppercase mb-2">
+        <div className={`panel flex-1 metric-card ${isDegraded ? 'border-orange-400/10' : ''}`} style={{ background: 'linear-gradient(180deg, rgba(20,184,166,0.12), rgba(15,23,42,0.03))' }}>
+          <div className="flex items-center gap-2 text-teal text-xs font-semibold uppercase mb-2">
             <TrendingDown size={16} /> TASA DE ÉXITO
           </div>
           <div className="metric-value">
-            <span className={isDegraded ? 'text-orange' : 'text-main'}>{successRate}</span>
+            <span className={isDegraded ? 'text-orange' : 'text-teal'}>{successRate}</span>
             <span className="text-lg text-muted ml-1">%</span>
           </div>
           {isDegraded && <div className="text-xs text-orange mt-2">Bajo observación</div>}
         </div>
 
-        <div className={`panel flex-1 metric-card ${isDegraded ? 'border-red-400/10' : ''}`}>
-          <div className="flex items-center gap-2 text-muted text-xs font-semibold uppercase mb-2">
+        <div className={`panel flex-1 metric-card ${isDegraded ? 'border-red-400/10' : ''}`} style={{ background: 'linear-gradient(180deg, rgba(251,191,36,0.12), rgba(15,23,42,0.03))' }}>
+          <div className="flex items-center gap-2 text-orange text-xs font-semibold uppercase mb-2">
             <Percent size={16} /> DISPONIBILIDAD SLA
           </div>
           <div className="metric-value">
-            <span className={isDegraded ? 'text-red' : 'text-main'}>{currentAvail}</span>
+            <span className={isDegraded ? 'text-red' : 'text-orange'}>{currentAvail}</span>
             <span className="text-lg text-muted ml-1">%</span>
           </div>
           {isDegraded && <div className="text-xs text-red mt-2">SLA en revisión</div>}

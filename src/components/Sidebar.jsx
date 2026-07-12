@@ -13,7 +13,7 @@ function Sidebar({ activeStep, setActiveStep, user, onLogout }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-title">
-        <Activity color="var(--accent-cyan)" />
+        <Activity color="var(--accent-purple)" />
         <span>Panel de navegación</span>
       </div>
       

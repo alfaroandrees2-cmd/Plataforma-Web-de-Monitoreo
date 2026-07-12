@@ -139,7 +139,7 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
         </div>
 
         {statusMessage && (
-          <div className={`mb-4 p-3 rounded-lg text-sm ${statusType === 'success' ? 'bg-emerald-950 text-emerald-200' : statusType === 'error' ? 'bg-red-950 text-red-200' : 'bg-slate-900 text-slate-100'}`}>
+          <div className={`mb-4 p-3 rounded-lg text-sm ${statusType === 'success' ? 'bg-[#1e293b] text-[#22c55e]' : statusType === 'error' ? 'bg-[#4c1d95] text-[#e9d5ff]' : 'bg-[#111827] text-[#cbd5e1]'}`}>
             {statusMessage}
           </div>
         )}
@@ -176,7 +176,7 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
                       <div className="flex items-center gap-4 text-sm text-muted mt-3">
                         <span className="flex items-center gap-1"><AlertTriangle size={15} style={{ color: 'var(--accent-orange)' }}/> {incidente.descripcion}</span>
                         {incidente.EquipoSoporte && (
-                          <span className="flex items-center gap-1"><User size={15} style={{ color: 'var(--accent-blue)' }}/> Asignado a: {incidente.EquipoSoporte.nombre}</span>
+                          <span className="flex items-center gap-1"><User size={15} style={{ color: '#f59e0b' }}/> Asignado a: {incidente.EquipoSoporte.nombre}</span>
                         )}
                         <span className="flex items-center gap-1"><Clock size={15} style={{ color: 'var(--text-muted)' }}/> {formatPeruTime(incidente.fecha_creacion)}</span>
                       </div>
@@ -194,7 +194,7 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
                     <button
                       onClick={() => handleDeleteIncident(incidente.incidente_id)}
                       disabled={deletingId === incidente.incidente_id}
-                      className="inline-flex items-center gap-2 rounded-lg border border-red-500 bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 disabled:opacity-50"
+                      className="inline-flex items-center gap-2 rounded-lg border border-[#ec4899] bg-[#ec4899] px-4 py-2 text-sm font-semibold text-white hover:bg-[#db2777] disabled:opacity-50"
                     >
                       <Trash2 size={16} />
                       {deletingId === incidente.incidente_id ? 'Eliminando...' : 'Eliminar incidente'}

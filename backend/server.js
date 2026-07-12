@@ -224,16 +224,38 @@ app.post('/api/incidentes/resolver', async (req, res) => {
       where: { fecha_resolucion: BigInt(0) }
     });
 
-    for (const inc of incidentesActivos) {
-      await prisma.incidente.update({
-        where: { incidente_id: inc.incidente_id },
-        data: {
-          fecha_resolucion: BigInt(Date.now()) // Marcamos como resuelto con el timestamp actual
-        }
-      });
+    if (incidentesActivos.length === 0) {
+      return res.json({ success: true, count: 0, message: 'No hay incidentes activos para resolver.' });
     }
 
-    res.json({ success: true, count: incidentesActivos.length });
+    const appMovil = await prisma.aplicacionMovil.findFirst();
+    if (!appMovil) {
+      return res.status(500).json({ error: 'No se encontró la aplicación móvil en la base de datos.' });
+    }
+
+    const deployTimestamp = BigInt(Date.now());
+
+    const hotfix = await prisma.hotfix.create({
+      data: {
+        version: 'v2.1.4',
+        fecha_despliegue: localNow(),
+        descripcion: 'Hotfix para normalizar picos de crash y completar la resolución de incidentes.',
+        estado_despliegue: 'COMPLETADO',
+        app_id: appMovil.app_id,
+        HotfixIncidentes: {
+          create: incidentesActivos.map(inc => ({
+            incidente_id: inc.incidente_id
+          }))
+        }
+      }
+    });
+
+    await prisma.incidente.updateMany({
+      where: { fecha_resolucion: BigInt(0) },
+      data: { fecha_resolucion: deployTimestamp }
+    });
+
+    res.json({ success: true, count: incidentesActivos.length, hotfixId: hotfix.hotfix_id.toString(), version: hotfix.version });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error resolviendo incidentes' });

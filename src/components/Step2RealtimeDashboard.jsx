@@ -83,16 +83,16 @@ function Step2RealtimeDashboard() {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
         {/* Total */}
         <div className="panel" style={{
-          background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(59,130,246,0.03))',
-          border: '1px solid rgba(59,130,246,0.2)',
+          background: 'linear-gradient(135deg, rgba(192,132,252,0.14), rgba(192,132,252,0.04))',
+          border: '1px solid rgba(192,132,252,0.22)',
           borderRadius: '1rem',
           padding: '1.25rem'
         }}>
           <div className="flex items-center gap-2 mb-3">
-            <BarChart2 size={16} style={{ color: '#3b82f6' }} />
+            <BarChart2 size={16} style={{ color: '#c084fc' }} />
             <span className="text-xs font-bold text-muted uppercase tracking-wider">Total Incidentes</span>
           </div>
-          <div style={{ fontSize: '2.8rem', fontWeight: 800, fontFamily: 'Outfit', color: '#3b82f6', lineHeight: 1 }}>
+          <div style={{ fontSize: '2.8rem', fontWeight: 800, fontFamily: 'Outfit', color: '#c084fc', lineHeight: 1 }}>
             {stats.total}
           </div>
           <div className="text-xs text-muted mt-2">registrados en BD</div>
@@ -206,8 +206,8 @@ function Step2RealtimeDashboard() {
               <AreaChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={isDegraded ? '#f87171' : '#7dd3fc'} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={isDegraded ? '#f87171' : '#7dd3fc'} stopOpacity={0} />
+                    <stop offset="5%" stopColor={isDegraded ? '#f87171' : '#c084fc'} stopOpacity={0.34} />
+                    <stop offset="95%" stopColor={isDegraded ? '#f87171' : '#ec4899'} stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
@@ -220,10 +220,10 @@ function Step2RealtimeDashboard() {
                 <Area
                   type="monotone"
                   dataKey="events"
-                  stroke={isDegraded ? '#FF2A5F' : '#00F0FF'}
+                  stroke={isDegraded ? '#FF2A5F' : '#c084fc'}
                   strokeWidth={4}
                   fill="url(#colorEvents)"
-                  activeDot={{ r: 8, fill: isDegraded ? '#FF2A5F' : '#00F0FF', stroke: '#000', strokeWidth: 2 }}
+                  activeDot={{ r: 8, fill: isDegraded ? '#FF2A5F' : '#c084fc', stroke: '#000', strokeWidth: 2 }}
                 />
               </AreaChart>
             </ResponsiveContainer>

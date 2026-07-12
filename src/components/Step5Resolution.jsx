@@ -71,10 +71,10 @@ function Step5Resolution({ simState, resolveIncident }) {
           
           {!hasActiveIncident ? (
             simState.resolved ? (
-              <div className="text-[#86efac] flex flex-col items-center">
-                <CheckCircle2 size={64} className="mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Incidente resuelto</h2>
-                <p className="text-muted text-sm">
+              <div className="flex flex-col items-center">
+                <CheckCircle2 size={64} className="mb-4" style={{ color: '#c084fc' }} />
+                <h2 className="text-2xl font-bold mb-2 text-purple">Incidente resuelto</h2>
+                <p className="text-purple text-sm">
                   La disponibilidad volvió a 99.6%. El incidente ha sido documentado
                   en la Base de Conocimientos de Errores Conocidos.
                 </p>
@@ -99,7 +99,8 @@ function Step5Resolution({ simState, resolveIncident }) {
               <button 
                 onClick={handleDeploy}
                 disabled={deploying}
-                className="w-full bg-slate-700 hover:bg-slate-600 text-white py-3 px-6 rounded-lg font-semibold text-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50"
+                style={{ background: 'linear-gradient(90deg, #f59e0b 0%, #c084fc 100%)' }}
+                className="w-full text-black py-3 px-6 rounded-lg font-semibold text-lg flex items-center justify-center gap-2 transition-transform duration-200 disabled:opacity-50"
               >
                 <Play size={20} />
                 {deploying ? 'Desplegando...' : 'Desplegar hotfix'}
