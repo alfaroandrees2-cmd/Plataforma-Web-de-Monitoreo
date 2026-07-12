@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { AlertCircle, MapPin, Activity } from 'lucide-react';
+import { AlertCircle, MapPin, Activity, CheckCircle2, XCircle, Clock, BarChart2 } from 'lucide-react';
 
 function Step2RealtimeDashboard() {
   const [data, setData] = useState([]);
   const [isDegraded, setIsDegraded] = useState(false);
   const [currentEvents, setCurrentEvents] = useState(14);
+  const [stats, setStats] = useState({
+    total: 0,
+    abiertos: 0,
+    resueltos: 0,
+    tiempoPromedioMin: 0
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -15,78 +21,186 @@ function Step2RealtimeDashboard() {
         setData(json.chartData);
         setIsDegraded(json.isDegraded);
         setCurrentEvents(json.currentEventsPerMinute);
+        if (json.stats) setStats(json.stats);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
       }
     };
 
-    fetchData(); // Fetch immediately
-    const interval = setInterval(fetchData, 3000); // Polling every 3 seconds
-
+    fetchData();
+    const interval = setInterval(fetchData, 3000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="flex flex-col h-full animate-fade-in">
-      <div className="panel-header mb-6">
-        <Activity color="var(--accent-cyan)" /> Dashboard en Tiempo Real (Ingesta de Eventos)
+    <div className="flex flex-col h-full animate-fade-in" style={{ gap: '1.25rem' }}>
+      <div className="panel-header">
+        <Activity color="var(--accent-cyan)" /> Dashboard en Tiempo Real
       </div>
-      
-      <div className="flex gap-6 mb-6">
-        <div className="panel flex-1 metric-card">
-          <h3 className="text-muted text-xs font-bold tracking-widest uppercase">Eventos por Minuto</h3>
+
+      {/* Fila 1: Estado del sistema */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem' }}>
+        <div className="panel metric-card">
+          <h3 className="text-muted text-xs font-bold tracking-widest uppercase">Eventos / min</h3>
           <div className="metric-value">
-            {isDegraded ? <span className="text-red pulse-alert px-3 py-1 rounded-lg">{currentEvents}</span> : <span className="text-main">{currentEvents}</span>}
+            {isDegraded
+              ? <span className="text-red pulse-alert px-3 py-1 rounded-lg">{currentEvents}</span>
+              : <span className="text-main">{currentEvents}</span>}
             <span className="text-lg text-muted ml-2 font-normal">req/m</span>
           </div>
         </div>
-        <div className="panel flex-1 metric-card">
+        <div className="panel metric-card">
           <h3 className="text-muted text-xs font-bold tracking-widest uppercase">Estado Global</h3>
           <div className="metric-value">
             {isDegraded ? <span className="text-red">CRÍTICO</span> : <span className="text-green">NORMAL</span>}
           </div>
         </div>
-        <div className="panel flex-1 metric-card">
+        <div className="panel metric-card">
           <h3 className="text-muted text-xs font-bold tracking-widest uppercase">Foco de Anomalía</h3>
           <div className="metric-value flex items-center gap-3 text-2xl mt-3">
-             <MapPin size={28} className={isDegraded ? 'text-red' : 'text-green'} />
-             {isDegraded ? 'Región Piura' : 'Ninguno'}
+            <MapPin size={28} className={isDegraded ? 'text-red' : 'text-green'} />
+            {isDegraded ? 'Región Piura' : 'Ninguno'}
           </div>
         </div>
       </div>
 
-      <div className="panel flex-1 relative flex flex-col">
+      {/* Fila 2: Métricas de incidentes desde MySQL */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '1rem' }}>
+        {/* Total */}
+        <div className="panel" style={{
+          background: 'linear-gradient(135deg, rgba(59,130,246,0.1), rgba(59,130,246,0.03))',
+          border: '1px solid rgba(59,130,246,0.2)',
+          borderRadius: '1rem',
+          padding: '1.25rem'
+        }}>
+          <div className="flex items-center gap-2 mb-3">
+            <BarChart2 size={16} style={{ color: '#3b82f6' }} />
+            <span className="text-xs font-bold text-muted uppercase tracking-wider">Total Incidentes</span>
+          </div>
+          <div style={{ fontSize: '2.8rem', fontWeight: 800, fontFamily: 'Outfit', color: '#3b82f6', lineHeight: 1 }}>
+            {stats.total}
+          </div>
+          <div className="text-xs text-muted mt-2">registrados en BD</div>
+        </div>
+
+        {/* Abiertos */}
+        <div className="panel" style={{
+          background: stats.abiertos > 0
+            ? 'linear-gradient(135deg, rgba(255,42,95,0.15), rgba(255,42,95,0.03))'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))',
+          border: stats.abiertos > 0 ? '1px solid rgba(255,42,95,0.3)' : '1px solid rgba(255,255,255,0.05)',
+          borderRadius: '1rem',
+          padding: '1.25rem',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {stats.abiertos > 0 && (
+            <div style={{
+              position: 'absolute', top: 0, left: 0, width: '3px', height: '100%',
+              background: 'linear-gradient(180deg, #ff2a5f, #ff8c00)',
+              boxShadow: '2px 0 10px rgba(255,42,95,0.5)'
+            }} />
+          )}
+          <div className="flex items-center gap-2 mb-3">
+            <XCircle size={16} style={{ color: stats.abiertos > 0 ? '#ff2a5f' : '#94a3b8' }} />
+            <span className="text-xs font-bold text-muted uppercase tracking-wider">Sin Resolver</span>
+          </div>
+          <div style={{
+            fontSize: '2.8rem', fontWeight: 800, fontFamily: 'Outfit', lineHeight: 1,
+            color: stats.abiertos > 0 ? '#ff2a5f' : 'var(--text-main)',
+            textShadow: stats.abiertos > 0 ? '0 0 20px rgba(255,42,95,0.4)' : 'none'
+          }}>
+            {stats.abiertos}
+          </div>
+          <div className="text-xs text-muted mt-2">incidentes activos</div>
+        </div>
+
+        {/* Resueltos */}
+        <div className="panel" style={{
+          background: stats.resueltos > 0
+            ? 'linear-gradient(135deg, rgba(0,255,135,0.1), rgba(0,255,135,0.02))'
+            : 'linear-gradient(135deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01))',
+          border: stats.resueltos > 0 ? '1px solid rgba(0,255,135,0.2)' : '1px solid rgba(255,255,255,0.05)',
+          borderRadius: '1rem',
+          padding: '1.25rem',
+          position: 'relative',
+          overflow: 'hidden'
+        }}>
+          {stats.resueltos > 0 && (
+            <div style={{
+              position: 'absolute', top: 0, left: 0, width: '3px', height: '100%',
+              background: 'linear-gradient(180deg, #00ff87, #00b8ff)',
+              boxShadow: '2px 0 10px rgba(0,255,135,0.5)'
+            }} />
+          )}
+          <div className="flex items-center gap-2 mb-3">
+            <CheckCircle2 size={16} style={{ color: stats.resueltos > 0 ? '#00ff87' : '#94a3b8' }} />
+            <span className="text-xs font-bold text-muted uppercase tracking-wider">Resueltos</span>
+          </div>
+          <div style={{
+            fontSize: '2.8rem', fontWeight: 800, fontFamily: 'Outfit', lineHeight: 1,
+            color: stats.resueltos > 0 ? '#00ff87' : 'var(--text-main)',
+            textShadow: stats.resueltos > 0 ? '0 0 20px rgba(0,255,135,0.4)' : 'none'
+          }}>
+            {stats.resueltos}
+          </div>
+          <div className="text-xs text-muted mt-2">cerrados exitosamente</div>
+        </div>
+
+        {/* Tiempo promedio */}
+        <div className="panel" style={{
+          background: 'linear-gradient(135deg, rgba(255,140,0,0.1), rgba(255,140,0,0.02))',
+          border: '1px solid rgba(255,140,0,0.2)',
+          borderRadius: '1rem',
+          padding: '1.25rem'
+        }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Clock size={16} style={{ color: '#ff8c00' }} />
+            <span className="text-xs font-bold text-muted uppercase tracking-wider">T. Resolución</span>
+          </div>
+          <div style={{ fontSize: '2.8rem', fontWeight: 800, fontFamily: 'Outfit', color: '#ff8c00', lineHeight: 1 }}>
+            {stats.resueltos > 0 ? stats.tiempoPromedioMin : '—'}
+          </div>
+          <div className="text-xs text-muted mt-2">
+            {stats.resueltos > 0 ? 'minutos promedio' : 'sin datos aún'}
+          </div>
+        </div>
+      </div>
+
+      {/* Fila 3: Gráfico de eventos */}
+      <div className="panel flex-1 relative flex flex-col" style={{ minHeight: '200px' }}>
         <div className="flex justify-between items-center mb-4">
           <div className="text-sm font-bold text-muted uppercase tracking-wider">
             Volumen de Eventos (App Móvil)
           </div>
           {isDegraded && (
-            <div className="bg-red-900/40 border border-red-500/50 text-red px-4 py-2 rounded-lg flex items-center gap-2 animate-pulse text-sm font-bold shadow-[0_0_15px_rgba(255,42,95,0.3)]">
-              <AlertCircle size={18} /> PICO ANÓMALO DETECTADO: OutOfMemory
+            <div className="bg-red-900/40 border border-red-500/50 text-red px-4 py-2 rounded-lg flex items-center gap-2 animate-pulse text-sm font-bold"
+              style={{ boxShadow: '0 0 15px rgba(255,42,95,0.3)' }}>
+              <AlertCircle size={18} /> PICO ANÓMALO: OutOfMemory
             </div>
           )}
         </div>
-        
+
         <div className="flex-1 min-h-0">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorEvents" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={isDegraded ? "#FF2A5F" : "#00F0FF"} stopOpacity={0.4}/>
-                  <stop offset="95%" stopColor={isDegraded ? "#FF2A5F" : "#00F0FF"} stopOpacity={0}/>
+                  <stop offset="5%" stopColor={isDegraded ? "#FF2A5F" : "#00F0FF"} stopOpacity={0.4} />
+                  <stop offset="95%" stopColor={isDegraded ? "#FF2A5F" : "#00F0FF"} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
               <XAxis dataKey="time" stroke="#94a3b8" tickLine={false} axisLine={false} dy={10} />
               <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} dx={-10} />
-              <Tooltip 
+              <Tooltip
                 contentStyle={{ backgroundColor: 'rgba(10,10,15,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
                 itemStyle={{ color: '#fff', fontWeight: 'bold' }}
               />
-              <Area 
-                type="monotone" 
-                dataKey="events" 
-                stroke={isDegraded ? "#FF2A5F" : "#00F0FF"} 
+              <Area
+                type="monotone"
+                dataKey="events"
+                stroke={isDegraded ? "#FF2A5F" : "#00F0FF"}
                 strokeWidth={4}
                 fill="url(#colorEvents)"
                 activeDot={{ r: 8, fill: isDegraded ? "#FF2A5F" : "#00F0FF", stroke: '#000', strokeWidth: 2 }}

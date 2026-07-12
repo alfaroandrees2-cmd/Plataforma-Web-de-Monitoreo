@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Ticket, User, Clock, AlertTriangle } from 'lucide-react';
+import { Ticket, User, Clock, AlertTriangle, Trash2 } from 'lucide-react';
 
 function Step3IncidentManagement({ simState, resolveIncident }) {
   const [incidentes, setIncidentes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [resolving, setResolving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [statusMessage, setStatusMessage] = useState('');
+  const [statusType, setStatusType] = useState('info');
 
   useEffect(() => {
     const fetchIncidentes = () => {
@@ -55,6 +57,59 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
     setResolving(false);
   };
 
+  const handleDeleteIncident = async (incidentId) => {
+    const confirmed = window.confirm('¿Deseas eliminar este incidente de forma permanente?');
+    if (!confirmed) return;
+
+    setDeletingId(incidentId);
+    setStatusMessage('Eliminando incidente...');
+    setStatusType('info');
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/incidentes/${incidentId}`, {
+        method: 'DELETE'
+      });
+      const result = await response.json();
+
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'No se pudo eliminar el incidente');
+      }
+
+      setStatusMessage(`Incidente ${incidentId} eliminado correctamente.`);
+      setStatusType('success');
+      setLoading(true);
+      fetch('http://localhost:3001/api/incidentes')
+        .then(res => res.json())
+        .then(data => {
+          setIncidentes(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error fetching incidentes", err);
+          setLoading(false);
+        });
+    } catch (err) {
+      console.error('Error eliminando incidente:', err);
+      setStatusMessage('No se pudo eliminar el incidente. Revisa el backend.');
+      setStatusType('error');
+    }
+
+    setDeletingId(null);
+  };
+
+  const formatPeruTime = (value) => {
+    if (!value) return '';
+    return new Date(value).toLocaleString('es-PE', {
+      timeZone: 'America/Lima',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit'
+    });
+  };
+
   return (
     <div className="flex flex-col h-full">
       <div className="panel-header mb-4">
@@ -84,7 +139,9 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
         </div>
 
         {statusMessage && (
-          <div className="mb-4 p-3 rounded-lg bg-slate-900 text-sm text-slate-100">{statusMessage}</div>
+          <div className={`mb-4 p-3 rounded-lg text-sm ${statusType === 'success' ? 'bg-emerald-950 text-emerald-200' : statusType === 'error' ? 'bg-red-950 text-red-200' : 'bg-slate-900 text-slate-100'}`}>
+            {statusMessage}
+          </div>
         )}
 
         {loading && incidentes.length === 0 ? (
@@ -121,7 +178,7 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
                         {incidente.EquipoSoporte && (
                           <span className="flex items-center gap-1"><User size={15} style={{ color: 'var(--accent-blue)' }}/> Asignado a: {incidente.EquipoSoporte.nombre}</span>
                         )}
-                        <span className="flex items-center gap-1"><Clock size={15} style={{ color: 'var(--accent-cyan)' }}/> {new Date(incidente.fecha_creacion).toLocaleString()}</span>
+                        <span className="flex items-center gap-1"><Clock size={15} style={{ color: 'var(--accent-cyan)' }}/> {formatPeruTime(incidente.fecha_creacion)}</span>
                       </div>
                     </div>
 
@@ -131,6 +188,17 @@ function Step3IncidentManagement({ simState, resolveIncident }) {
                         {stateText}
                       </div>
                     </div>
+                  </div>
+
+                  <div className="flex justify-end mt-4">
+                    <button
+                      onClick={() => handleDeleteIncident(incidente.incidente_id)}
+                      disabled={deletingId === incidente.incidente_id}
+                      className="inline-flex items-center gap-2 rounded-lg border border-red-500 bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-500 disabled:opacity-50"
+                    >
+                      <Trash2 size={16} />
+                      {deletingId === incidente.incidente_id ? 'Eliminando...' : 'Eliminar incidente'}
+                    </button>
                   </div>
 
                   {incidente.Alerta && incidente.Alerta.regla_itil && (

@@ -17,6 +17,11 @@ BigInt.prototype.toJSON = function () {
   return this.toString();
 };
 
+// Helper: fecha actual en UTC. La conversión a hora local se realiza en el frontend.
+const localNow = () => {
+  return new Date();
+};
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Backend is running' });
 });
@@ -56,7 +61,7 @@ app.post('/api/simular-crash', async (req, res) => {
     // 2. Crear Evento de Monitoreo (El Crash)
     const evento = await prisma.eventoMonitoreo.create({
       data: {
-        fecha_hora: new Date(),
+        fecha_hora: localNow(),
         tipo_evento: 'CRASH',
         severidad: 'CRITICO',
         estado_evento: 'REGISTRADO',
@@ -70,7 +75,7 @@ app.post('/api/simular-crash', async (req, res) => {
     // 3. Crear Alerta
     const alerta = await prisma.alerta.create({
       data: {
-        fecha_creacion: new Date(),
+        fecha_creacion: localNow(),
         estado_alerta: 'ACTIVA',
         regla_itil: 'R-002 Crash Crítico Detectado',
         umbral: '> 0',
@@ -81,12 +86,12 @@ app.post('/api/simular-crash', async (req, res) => {
     // 4. Crear Incidente
     const nuevoIncidente = await prisma.incidente.create({
       data: {
-        codigo: `INC-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
+        codigo: `INC-${localNow().getFullYear()}-${Math.floor(Math.random() * 10000)}`,
         titulo: 'Crash de Aplicación en Tiempo Real',
         descripcion: 'El usuario experimentó un cierre inesperado al presionar "Simular Crash".',
         prioridad: 'ALTA',
-        estado_incidente: new Date(),
-        fecha_creacion: new Date(),
+        estado_incidente: localNow(),
+        fecha_creacion: localNow(),
         fecha_resolucion: BigInt(0),
         alerta_id: alerta.alerta_id,
         equipo_id: equipo.equipo_id,
@@ -108,14 +113,32 @@ app.post('/api/simular-crash', async (req, res) => {
 // 5. Nuevas Rutas de Métricas y Resolución
 app.get('/api/metricas/dashboard', async (req, res) => {
   try {
-    // Buscar incidentes no resueltos para ver si el sistema está degradado
-    const incidentesActivos = await prisma.incidente.count({
-      where: { estado_incidente: { not: new Date(0) }, fecha_resolucion: BigInt(0) } // BigInt(0) means unresolved in our logic
+    // Contar incidentes por estado
+    const totalIncidentes = await prisma.incidente.count();
+    const incidentesAbiertos = await prisma.incidente.count({
+      where: { fecha_resolucion: BigInt(0) }
+    });
+    const incidentesResueltos = totalIncidentes - incidentesAbiertos;
+
+    // Calcular tiempo promedio de resolución (en minutos)
+    const resueltos = await prisma.incidente.findMany({
+      where: { fecha_resolucion: { not: BigInt(0) } },
+      select: { fecha_creacion: true, fecha_resolucion: true }
     });
 
-    const isDegraded = incidentesActivos > 0;
+    let tiempoPromedioMin = 0;
+    if (resueltos.length > 0) {
+      const tiempos = resueltos.map(inc => {
+        const creacion = new Date(inc.fecha_creacion).getTime();
+        const resolucion = Number(inc.fecha_resolucion);
+        return (resolucion - creacion) / 1000 / 60; // en minutos
+      });
+      tiempoPromedioMin = Math.round(tiempos.reduce((a, b) => a + b, 0) / tiempos.length);
+    }
 
-    // Generar datos base dinámicos (simulando un time-series real)
+    const isDegraded = incidentesAbiertos > 0;
+
+    // Datos del gráfico
     const baseData = [
       { time: '10:00', events: 12 },
       { time: '10:05', events: 15 },
@@ -141,7 +164,13 @@ app.get('/api/metricas/dashboard', async (req, res) => {
     res.json({
       isDegraded,
       chartData: baseData,
-      currentEventsPerMinute: isDegraded ? 210 : 14
+      currentEventsPerMinute: isDegraded ? 210 : 14,
+      stats: {
+        total: totalIncidentes,
+        abiertos: incidentesAbiertos,
+        resueltos: incidentesResueltos,
+        tiempoPromedioMin: tiempoPromedioMin || 0
+      }
     });
 
   } catch (error) {
@@ -189,6 +218,38 @@ app.post('/api/incidentes/resolver', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error resolviendo incidentes' });
+  }
+});
+
+app.delete('/api/incidentes/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ error: 'ID de incidente requerido' });
+    }
+
+    const incidenteId = BigInt(id);
+    const incidente = await prisma.incidente.findUnique({
+      where: { incidente_id: incidenteId }
+    });
+
+    if (!incidente) {
+      return res.status(404).json({ error: 'Incidente no encontrado' });
+    }
+
+    await prisma.$transaction([
+      prisma.ticketIncidente.deleteMany({ where: { incidente_id: incidenteId } }),
+      prisma.metricaUX.deleteMany({ where: { incidente_id: incidenteId } }),
+      prisma.hotfixIncidente.deleteMany({ where: { incidente_id: incidenteId } }),
+      prisma.registroConocimiento.deleteMany({ where: { incidente_id: incidenteId } }),
+      prisma.notificacionWebhook.deleteMany({ where: { incidente_id: incidenteId } }),
+      prisma.incidente.delete({ where: { incidente_id: incidenteId } })
+    ]);
+
+    res.json({ success: true, id: incidenteId.toString() });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error eliminando incidente' });
   }
 });
 
