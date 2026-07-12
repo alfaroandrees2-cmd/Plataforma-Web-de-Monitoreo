@@ -59,7 +59,7 @@ function App() {
       const result = await response.json();
       console.log("Incidentes resueltos en MySQL", result);
 
-      const newState = { ...simState, resolved: true };
+      const newState = { ...simState, crashed: false, resolved: true };
       updateSimState(newState);
       return result;
     } catch (err) {

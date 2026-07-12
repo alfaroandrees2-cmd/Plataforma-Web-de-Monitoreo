@@ -62,11 +62,15 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
   return (
     <div className="flex flex-col h-full">
       <div className="panel-header mb-4">
-        <SmartphoneIcon /> Simulación: App Móvil (Región Piura)
+        <SmartphoneIcon />
+        <div className="panel-header-copy">
+          <span className="text-sm text-muted">AgroApp</span>
+          <span className="font-semibold">Telemetría de Campo (Región Piura)</span>
+        </div>
       </div>
       <p className="text-muted mb-6">
-        Simula a un colaborador de campo intentando sincronizar datos bajo condiciones inestables de red, 
-        lo que desencadenará un "Out of Memory Exception" capturado por nuestro SDK.
+        El operador completa el formulario de AgroApp con datos agrícolas y lo envía al centro de monitoreo.
+        Si la conectividad falla, el SDK registra el evento crítico y genera la alerta correspondiente.
       </p>
 
       <div className="flex gap-6 justify-center flex-1">
@@ -76,37 +80,67 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
           <div className="mobile-notch"></div>
           <div className="mobile-screen">
             <div className="mobile-header">
-              CorpApp Movil
+              <div>
+                <div className="mobile-title">AgroApp</div>
+                <div className="mobile-subtitle">Registro de Campo</div>
+              </div>
+              <div className="mobile-badge">Piura</div>
             </div>
             <div className="mobile-content relative">
-              <div className="flex justify-between items-center bg-gray-200 p-2 rounded text-sm text-gray-700">
-                <span>Zona: Piura Rural</span>
-                <WifiOff size={14} className="text-red-500" />
-              </div>
-              
-              <div className="mt-8 text-center text-gray-600">
-                <p>150 registros pendientes</p>
-                <p>de sincronización</p>
+              <div className="mobile-status-bar">
+                <span className="status-pill status-good">3G</span>
+                <span className="status-meta">Zona Piura Rural</span>
+                <span className="status-pill status-strong">92% Batería</span>
               </div>
 
-              <div className="mt-auto mb-8">
-                <button 
-                  className="btn-sync w-full"
-                  onClick={handleSync}
-                  disabled={syncing || simState.crashed}
-                >
-                  <RefreshCw size={18} className={syncing ? 'animate-spin' : ''} />
-                  {syncing ? 'Sincronizando...' : 'Sincronizar Datos'}
-                </button>
+              <div className="form-card">
+                <div className="form-card-header">
+                  <div>
+                    <div className="text-sm text-gray-500">Formulario</div>
+                    <div className="text-lg font-semibold">Datos de Telemetría</div>
+                  </div>
+                  <div className="text-xs text-gray-500">5 registros</div>
+                </div>
+
+                <div className="form-field">
+                  <label>Cultivo</label>
+                  <div className="form-value">Maíz</div>
+                </div>
+                <div className="form-field">
+                  <label>Humedad de Suelo</label>
+                  <div className="form-value">24.8 %</div>
+                </div>
+                <div className="form-field">
+                  <label>Temperatura</label>
+                  <div className="form-value">31.2 °C</div>
+                </div>
+                <div className="form-field">
+                  <label>Nivel de Fertilizante</label>
+                  <div className="form-value">Suficiente</div>
+                </div>
+              </div>
+
+              <div className="form-summary text-xs text-gray-500">
+                Última actualización: hace 1 min · Latencia estimada: 285 ms
               </div>
 
               {simState.crashed && (
                 <div className="crash-dialog">
                   <AlertTriangle size={32} className="text-red mx-auto mb-2" />
                   <h3 className="font-bold mb-1">La aplicación se ha detenido</h3>
-                  <p className="text-sm text-gray-600">CorpApp Movil dejó de funcionar inesperadamente.</p>
+                  <p className="text-sm text-gray-600">AgroApp dejó de funcionar inesperadamente.</p>
                 </div>
               )}
+            </div>
+            <div className="mobile-footer p-4">
+              <button 
+                className="btn-sync w-full"
+                onClick={handleSync}
+                disabled={syncing || simState.crashed}
+              >
+                <RefreshCw size={18} className={syncing ? 'animate-spin' : ''} />
+                {syncing ? 'Enviando...' : 'Enviar Formulario'}
+              </button>
             </div>
           </div>
         </div>
@@ -140,7 +174,7 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
                   <button 
                     onClick={handleReset}
                     className="px-4 py-2 rounded border border-gray-600 text-gray-400 hover:border-gray-400 hover:text-white transition-colors text-sm"
-                    title="Reiniciar simulación"
+                    title="Reiniciar"
                   >
                     ↺ Reiniciar
                   </button>

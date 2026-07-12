@@ -1,12 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Play, CheckCircle2, Terminal } from 'lucide-react';
 
 function Step5Resolution({ simState, resolveIncident }) {
   const [deploying, setDeploying] = useState(false);
   const [deployLogs, setDeployLogs] = useState([]);
+  const [activeIncidents, setActiveIncidents] = useState([]);
+  const [loadingIncidents, setLoadingIncidents] = useState(true);
+
+  const fetchIncidentes = async () => {
+    try {
+      setLoadingIncidents(true);
+      const res = await fetch('http://localhost:3001/api/incidentes');
+      const data = await res.json();
+      setActiveIncidents(data || []);
+    } catch (err) {
+      console.error('Error fetching incidentes en resolución:', err);
+    } finally {
+      setLoadingIncidents(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchIncidentes();
+  }, []);
+
+  const activeIncidentsOpen = activeIncidents.filter(
+    inc => inc.fecha_resolucion === '0' || inc.fecha_resolucion === 0 || inc.fecha_resolucion === null
+  );
+  const hasActiveIncident = activeIncidentsOpen.length > 0;
+  const activeIncidentCodes = activeIncidentsOpen.map(inc => inc.codigo).join(', ');
 
   const handleDeploy = () => {
     setDeploying(true);
+    const incidentCount = activeIncidentsOpen.length;
     const logs = [
       "Iniciando despliegue de Hotfix v2.1.4 (Batching Sync)...",
       "Compilando artefactos móviles...",
@@ -15,15 +41,16 @@ function Step5Resolution({ simState, resolveIncident }) {
       "Actualización distribuida a 450 dispositivos.",
       "Recibiendo telemetría limpia...",
       "Indicador de usuarios libres de fallos recuperado a 99.6%.",
-      "Cerrando incidente #INC-2026-0892."
+      `Cerrando ${incidentCount} incidente(s): ${activeIncidentCodes}`
     ];
 
     logs.forEach((log, i) => {
-      setTimeout(() => {
+      setTimeout(async () => {
         setDeployLogs(prev => [...prev, log]);
         if (i === logs.length - 1) {
           setDeploying(false);
-          resolveIncident();
+          await resolveIncident();
+          fetchIncidentes();
         }
       }, i * 800);
     });
@@ -42,21 +69,26 @@ function Step5Resolution({ simState, resolveIncident }) {
       <div className="flex gap-6 h-full">
         <div className="panel flex-1 flex flex-col items-center justify-center text-center">
           
-          {!simState.crashed ? (
-            <div className="text-muted">El sistema está operando con normalidad. No hay parches pendientes.</div>
-          ) : simState.resolved ? (
-            <div className="text-green flex flex-col items-center">
-              <CheckCircle2 size={64} className="mb-4" />
-              <h2 className="text-2xl font-bold mb-2">Incidente Resuelto Exitosamente</h2>
-              <p className="text-muted text-sm">
-                La disponibilidad volvió a 99.6%. El incidente #INC-2026-0892 ha sido documentado
-                en la Base de Conocimientos de Errores Conocidos.
-              </p>
-            </div>
+          {!hasActiveIncident ? (
+            simState.resolved ? (
+              <div className="text-green flex flex-col items-center">
+                <CheckCircle2 size={64} className="mb-4" />
+                <h2 className="text-2xl font-bold mb-2">Incidente Resuelto Exitosamente</h2>
+                <p className="text-muted text-sm">
+                  La disponibilidad volvió a 99.6%. El incidente ha sido documentado
+                  en la Base de Conocimientos de Errores Conocidos.
+                </p>
+              </div>
+            ) : (
+              <div className="text-muted">El sistema está operando con normalidad. No hay incidentes activos ni parches pendientes.</div>
+            )
           ) : (
             <div className="flex flex-col items-center w-full max-w-md">
               <div className="bg-[#0f172a] border border-border-color p-4 rounded-lg text-left w-full mb-6">
                 <h4 className="text-cyan font-bold mb-2">Detalle del Hotfix (v2.1.4)</h4>
+                <p className="text-sm text-muted mb-3">
+                  Incidentes activos: {activeIncidentsOpen.length} ({activeIncidentCodes})
+                </p>
                 <ul className="text-sm text-muted list-disc list-inside">
                   <li>Implementación de paginación (50 registros/lote).</li>
                   <li>Liberación proactiva de memoria con Garbage Collector tras cada lote.</li>
