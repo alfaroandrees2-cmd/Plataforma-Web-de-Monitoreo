@@ -1,45 +1,30 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AlertCircle, MapPin, Activity } from 'lucide-react';
 
-function Step2RealtimeDashboard({ simState }) {
-  
-  const data = useMemo(() => {
-    const baseData = [
-      { time: '10:00', events: 12 },
-      { time: '10:05', events: 15 },
-      { time: '10:10', events: 10 },
-      { time: '10:15', events: 14 },
-      { time: '10:20', events: 18 },
-    ];
-    
-    if (simState.crashed) {
-      if (simState.resolved) {
-        baseData.push(
-          { time: '10:25', events: 150 },
-          { time: '10:30', events: 210 },
-          { time: '10:35', events: 180 },
-          { time: '10:40', events: 45 },
-          { time: '10:45', events: 12 }
-        );
-      } else {
-        baseData.push(
-          { time: '10:25', events: 150 },
-          { time: '10:30', events: 210 },
-          { time: '10:35', events: 180 }
-        );
-      }
-    } else {
-      baseData.push(
-        { time: '10:25', events: 11 },
-        { time: '10:30', events: 13 },
-        { time: '10:35', events: 16 }
-      );
-    }
-    return baseData;
-  }, [simState.crashed, simState.resolved]);
+function Step2RealtimeDashboard() {
+  const [data, setData] = useState([]);
+  const [isDegraded, setIsDegraded] = useState(false);
+  const [currentEvents, setCurrentEvents] = useState(14);
 
-  const isDegraded = simState.crashed && !simState.resolved;
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/api/metricas/dashboard');
+        const json = await res.json();
+        setData(json.chartData);
+        setIsDegraded(json.isDegraded);
+        setCurrentEvents(json.currentEventsPerMinute);
+      } catch (err) {
+        console.error("Error fetching dashboard data:", err);
+      }
+    };
+
+    fetchData(); // Fetch immediately
+    const interval = setInterval(fetchData, 3000); // Polling every 3 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="flex flex-col h-full animate-fade-in">
@@ -51,7 +36,7 @@ function Step2RealtimeDashboard({ simState }) {
         <div className="panel flex-1 metric-card">
           <h3 className="text-muted text-xs font-bold tracking-widest uppercase">Eventos por Minuto</h3>
           <div className="metric-value">
-            {isDegraded ? <span className="text-red pulse-alert px-3 py-1 rounded-lg">210</span> : <span className="text-main">14</span>}
+            {isDegraded ? <span className="text-red pulse-alert px-3 py-1 rounded-lg">{currentEvents}</span> : <span className="text-main">{currentEvents}</span>}
             <span className="text-lg text-muted ml-2 font-normal">req/m</span>
           </div>
         </div>
@@ -65,7 +50,7 @@ function Step2RealtimeDashboard({ simState }) {
           <h3 className="text-muted text-xs font-bold tracking-widest uppercase">Foco de Anomalía</h3>
           <div className="metric-value flex items-center gap-3 text-2xl mt-3">
              <MapPin size={28} className={isDegraded ? 'text-red' : 'text-green'} />
-             {simState.crashed ? 'Región Piura' : 'Ninguno'}
+             {isDegraded ? 'Región Piura' : 'Ninguno'}
           </div>
         </div>
       </div>

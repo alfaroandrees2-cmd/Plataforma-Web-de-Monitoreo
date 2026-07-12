@@ -1,0 +1,211 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  usuario_id    BigInt        @id @default(autoincrement())
+  nombre        String        @db.VarChar(100)
+  email         String        @db.VarChar(255)
+  rol           String        @db.VarChar(50)
+  Dispositivos  Dispositivo[]
+}
+
+model Dispositivo {
+  dispositivo_id   BigInt            @id @default(autoincrement())
+  modelo           String            @db.VarChar(120)
+  so_version       String            @db.VarChar(40)
+  nivel_bateria    Int               @db.TinyInt
+  usuario_id       BigInt
+  region_id        BigInt
+  Usuario          Usuario           @relation(fields: [usuario_id], references: [usuario_id])
+  Region           Region            @relation(fields: [region_id], references: [region_id])
+  EventosMonitoreo EventoMonitoreo[]
+}
+
+model Region {
+  region_id    BigInt        @id @default(autoincrement())
+  nombre       String        @db.VarChar(100)
+  pais         String        @db.VarChar(80)
+  ciudad       String        @db.VarChar(120)
+  lat_lon      Decimal       @db.Decimal(9, 6)
+  Dispositivos Dispositivo[]
+  EventosMonitoreo EventoMonitoreo[]
+}
+
+model AplicacionMovil {
+  app_id           BigInt            @id @default(autoincrement())
+  nombre           String            @db.VarChar(120)
+  paquete          String            @db.VarChar(80)
+  version          String            @db.VarChar(20)
+  EventosMonitoreo EventoMonitoreo[]
+  MetricasUX       MetricaUX[]
+  Hotfixes         Hotfix[]
+}
+
+model SdkMonitoreo {
+  sdk_id           BigInt            @id @default(autoincrement())
+  nombre           String            @db.VarChar(120)
+  version          String            @db.VarChar(20)
+  proveedor        String            @db.VarChar(120)
+  EventosMonitoreo EventoMonitoreo[]
+}
+
+model EventoMonitoreo {
+  evento_id      Int      @id @default(autoincrement())
+  fecha_hora     DateTime @db.DateTime
+  tipo_evento    String
+  severidad      String
+  estado_evento  String
+  dispositivo_id BigInt
+  app_id         BigInt
+  sdk_id         BigInt
+  region_id      BigInt
+
+  Dispositivo    Dispositivo       @relation(fields: [dispositivo_id], references: [dispositivo_id])
+  AplicacionMovil AplicacionMovil  @relation(fields: [app_id], references: [app_id])
+  SdkMonitoreo   SdkMonitoreo      @relation(fields: [sdk_id], references: [sdk_id])
+  Region         Region            @relation(fields: [region_id], references: [region_id])
+
+  Excepciones    Excepcion[]
+  Alertas        Alerta[]
+  HotfixEventos  HotfixEvento[]
+}
+
+model Excepcion {
+  excepcion_id BigInt          @id @default(autoincrement())
+  tipo         String          @db.VarChar(60)
+  mensaje      String          @db.VarChar(255)
+  stack_trace  String          @db.Text
+  evento_id    Int
+  Evento       EventoMonitoreo @relation(fields: [evento_id], references: [evento_id])
+}
+
+model Alerta {
+  alerta_id      BigInt          @id @default(autoincrement())
+  fecha_creacion DateTime        @db.DateTime
+  estado_alerta  String          @db.VarChar(20)
+  regla_itil     String          @db.VarChar(100)
+  umbral         String          @db.VarChar(20)
+  evento_id      Int
+  Evento         EventoMonitoreo @relation(fields: [evento_id], references: [evento_id])
+
+  Incidentes          Incidente[]
+  NotificacionWebhook NotificacionWebhook[]
+}
+
+model Incidente {
+  incidente_id     BigInt   @id @default(autoincrement())
+  codigo           String   @db.VarChar(36)
+  titulo           String   @db.VarChar(120)
+  descripcion      String   @db.Text
+  prioridad        String   @db.VarChar(20)
+  estado_incidente DateTime @db.DateTime
+  fecha_creacion   DateTime @db.DateTime
+  fecha_resolucion BigInt   // Mapeado a BigInt segun diagrama, quiza era Datetime
+  alerta_id        BigInt
+  equipo_id        BigInt
+  sla_id           BigInt
+
+  Alerta        Alerta        @relation(fields: [alerta_id], references: [alerta_id])
+  EquipoSoporte EquipoSoporte @relation(fields: [equipo_id], references: [equipo_id])
+  Sla           Sla           @relation(fields: [sla_id], references: [sla_id])
+
+  TicketIncidentes     TicketIncidente[]
+  MetricasUX           MetricaUX[]
+  HotfixIncidentes     HotfixIncidente[]
+  RegistrosConocimiento RegistroConocimiento[]
+  NotificacionesWebhook NotificacionWebhook[]
+}
+
+model TicketIncidente {
+  ticket_id     BigInt    @id @default(autoincrement())
+  numero        String    @db.VarChar(36)
+  estado_ticket String    @db.VarChar(20)
+  canal_origen  String    @db.VarChar(30)
+  incidente_id  BigInt
+  Incidente     Incidente @relation(fields: [incidente_id], references: [incidente_id])
+}
+
+model EquipoSoporte {
+  equipo_id      BigInt      @id @default(autoincrement())
+  nombre         String      @db.VarChar(120)
+  tipo_equipo    String      @db.VarChar(30)
+  canal_contacto String      @db.VarChar(120)
+  Incidentes     Incidente[]
+}
+
+model MetricaUX {
+  metrica_id               BigInt          @id @default(autoincrement())
+  timestamp                DateTime        @db.DateTime
+  tiempo_respuesta_prom    Decimal         @db.Decimal(10, 2)
+  tasa_exito_transacciones Decimal         @db.Decimal(5, 2)
+  disponibilidad_servicio  Decimal         @db.Decimal(5, 2)
+  app_id                   BigInt
+  incidente_id             BigInt?
+  AplicacionMovil          AplicacionMovil @relation(fields: [app_id], references: [app_id])
+  Incidente                Incidente?      @relation(fields: [incidente_id], references: [incidente_id])
+}
+
+model Sla {
+  sla_id                  BigInt      @id @default(autoincrement())
+  nombre                  String
+  objetivo_disponibilidad Decimal     @db.Decimal(5, 2)
+  max_tiempo_respuesta    Float
+  severidad               String
+  Incidentes              Incidente[]
+}
+
+model Hotfix {
+  hotfix_id         BigInt            @id @default(autoincrement())
+  version           String            @db.VarChar(20)
+  fecha_despliegue  DateTime          @db.DateTime
+  descripcion       String            @db.Text
+  estado_despliegue String            @db.VarChar(20)
+  app_id            BigInt
+  AplicacionMovil   AplicacionMovil   @relation(fields: [app_id], references: [app_id])
+  HotfixEventos     HotfixEvento[]
+  HotfixIncidentes  HotfixIncidente[]
+}
+
+model HotfixEvento {
+  hotfix_evento_id BigInt          @id @default(autoincrement())
+  hotfix_id        BigInt
+  evento_id        Int
+  Hotfix           Hotfix          @relation(fields: [hotfix_id], references: [hotfix_id])
+  Evento           EventoMonitoreo @relation(fields: [evento_id], references: [evento_id])
+}
+
+model HotfixIncidente {
+  hotfix_incidente_id Int       @id @default(autoincrement())
+  hotfix_id           BigInt
+  incidente_id        BigInt
+  Hotfix              Hotfix    @relation(fields: [hotfix_id], references: [hotfix_id])
+  Incidente           Incidente @relation(fields: [incidente_id], references: [incidente_id])
+}
+
+model RegistroConocimiento {
+  registro_id    Int       @id @default(autoincrement())
+  codigo         String
+  titulo         String
+  solucion       String    @db.Text
+  fecha_creacion DateTime  @db.DateTime
+  incidente_id   BigInt
+  Incidente      Incidente @relation(fields: [incidente_id], references: [incidente_id])
+}
+
+model NotificacionWebhook {
+  webhook_id     Int       @id @default(autoincrement())
+  fecha_envio    DateTime  @db.DateTime
+  destino        String
+  estado_entrega String
+  tipo           String
+  alerta_id      BigInt?
+  incidente_id   BigInt?
+  Alerta         Alerta?   @relation(fields: [alerta_id], references: [alerta_id])
+  Incidente      Incidente? @relation(fields: [incidente_id], references: [incidente_id])
+}

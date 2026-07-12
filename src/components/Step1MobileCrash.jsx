@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { RefreshCw, WifiOff, AlertTriangle } from 'lucide-react';
 
-function Step1MobileCrash({ simState, triggerCrash, nextStep }) {
+function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
   const [syncing, setSyncing] = useState(false);
-  const [logs, setLogs] = useState([]);
+
+  // Logs persistentes en localStorage
+  const [logs, setLogs] = useState(() => {
+    try {
+      const saved = localStorage.getItem('crashLogs');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
+  const saveLogs = (newLogs) => {
+    setLogs(newLogs);
+    localStorage.setItem('crashLogs', JSON.stringify(newLogs));
+  };
 
   useEffect(() => {
     if (simState.crashed && logs.length === 0) {
@@ -13,7 +25,6 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep }) {
 
   const handleSync = () => {
     setSyncing(true);
-    // Simulate network delay then crash
     setTimeout(() => {
       setSyncing(false);
       triggerCrash();
@@ -33,12 +44,19 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep }) {
       "  at com.corp.app.MainActivity.onSyncClick(MainActivity.java:112)",
       "-> Enrutando stacktrace al backend NOC..."
     ];
-    
+    let accumulated = [];
     newLogs.forEach((log, index) => {
       setTimeout(() => {
-        setLogs(prev => [...prev, log]);
+        accumulated = [...accumulated, log];
+        saveLogs(accumulated);
       }, index * 300);
     });
+  };
+
+  const handleReset = () => {
+    localStorage.removeItem('crashLogs');
+    setLogs([]);
+    resetSim();
   };
 
   return (
@@ -112,12 +130,21 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep }) {
               <div className="bg-red-900/20 border border-red-500 p-4 rounded-lg">
                 <h4 className="text-red font-bold mb-2">Evento Crítico Capturado</h4>
                 <p className="text-sm">Metadata enviada a NOC: Dispositivo (Samsung S21), SO (Android 12), Región (Piura).</p>
-                <button 
-                  onClick={nextStep}
-                  className="mt-4 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded"
-                >
-                  Ver Impacto en Dashboard NOC &rarr;
-                </button>
+                <div className="flex gap-3 mt-4">
+                  <button 
+                    onClick={nextStep}
+                    className="flex-1 bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded transition-colors"
+                  >
+                    Ver Impacto en Dashboard NOC &rarr;
+                  </button>
+                  <button 
+                    onClick={handleReset}
+                    className="px-4 py-2 rounded border border-gray-600 text-gray-400 hover:border-gray-400 hover:text-white transition-colors text-sm"
+                    title="Reiniciar simulación"
+                  >
+                    ↺ Reiniciar
+                  </button>
+                </div>
               </div>
             </div>
           )}

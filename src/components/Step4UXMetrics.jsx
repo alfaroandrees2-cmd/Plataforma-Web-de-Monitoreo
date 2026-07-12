@@ -1,45 +1,65 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Clock, TrendingDown, Percent, Activity } from 'lucide-react';
 
-function Step4UXMetrics({ simState }) {
+function Step4UXMetrics() {
+  const [metrics, setMetrics] = useState({
+    apdex: 0.94,
+    crashFree: 99.8,
+    latency: 240
+  });
+  const [isDegraded, setIsDegraded] = useState(false);
+  const [uxData, setUxData] = useState([]);
 
-  const uxData = useMemo(() => {
-    const data = [
-      { time: '-10m', availability: 99.9, responseTime: 1.2 },
-      { time: '-8m', availability: 99.9, responseTime: 1.3 },
-      { time: '-6m', availability: 99.8, responseTime: 1.5 },
-    ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch('http://localhost:3001/api/metricas/ux');
+        const json = await res.json();
+        
+        const degraded = json.apdex < 0.8;
+        setIsDegraded(degraded);
+        setMetrics({
+          apdex: json.apdex,
+          crashFree: json.crashFree,
+          latency: json.latency
+        });
 
-    if (simState.crashed) {
-      if (simState.resolved) {
-        data.push(
-          { time: '-4m', availability: 91.5, responseTime: 8.4 },
-          { time: '-2m', availability: 95.0, responseTime: 4.2 },
-          { time: 'Ahora', availability: 99.6, responseTime: 1.1 }
-        );
-      } else {
-        data.push(
-          { time: '-4m', availability: 95.5, responseTime: 5.2 },
-          { time: '-2m', availability: 93.0, responseTime: 7.1 },
-          { time: 'Ahora', availability: 91.5, responseTime: 8.4 }
-        );
+        // Generar historial falso en base al estado actual
+        const data = [
+          { time: '-10m', availability: 99.9, responseTime: 1.2 },
+          { time: '-8m', availability: 99.9, responseTime: 1.3 },
+          { time: '-6m', availability: 99.8, responseTime: 1.5 },
+        ];
+
+        if (degraded) {
+          data.push(
+            { time: '-4m', availability: 95.5, responseTime: 5.2 },
+            { time: '-2m', availability: 93.0, responseTime: 7.1 },
+            { time: 'Ahora', availability: json.crashFree, responseTime: json.latency / 1000 }
+          );
+        } else {
+          data.push(
+            { time: '-4m', availability: 99.9, responseTime: 1.2 },
+            { time: '-2m', availability: 99.8, responseTime: 1.3 },
+            { time: 'Ahora', availability: json.crashFree, responseTime: json.latency / 1000 }
+          );
+        }
+        setUxData(data);
+
+      } catch (err) {
+        console.error("Error fetching UX data:", err);
       }
-    } else {
-      data.push(
-        { time: '-4m', availability: 99.9, responseTime: 1.2 },
-        { time: '-2m', availability: 99.8, responseTime: 1.3 },
-        { time: 'Ahora', availability: 99.9, responseTime: 1.2 }
-      );
-    }
-    return data;
-  }, [simState.crashed, simState.resolved]);
+    };
 
-  const currentAvail = simState.crashed ? (simState.resolved ? '99.6' : '91.5') : '99.9';
-  const currentRespTime = simState.crashed ? (simState.resolved ? '1.1' : '8.4') : '1.2';
-  const successRate = simState.crashed ? (simState.resolved ? '99.8' : '75.0') : '99.9';
+    fetchData();
+    const interval = setInterval(fetchData, 3000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const isDegraded = simState.crashed && !simState.resolved;
+  const currentAvail = metrics.crashFree.toFixed(1);
+  const currentRespTime = (metrics.latency / 1000).toFixed(1);
+  const successRate = isDegraded ? '75.0' : '99.9';
 
   return (
     <div className="flex flex-col h-full animate-fade-in">

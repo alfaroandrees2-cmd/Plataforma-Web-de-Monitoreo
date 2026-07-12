@@ -7,40 +7,80 @@ import Step4UXMetrics from './components/Step4UXMetrics';
 import Step5Resolution from './components/Step5Resolution';
 
 function App() {
-  const [activeStep, setActiveStep] = useState(1);
-  const [simState, setSimState] = useState({
-    crashed: false,
-    resolved: false,
-    crashCount: 0,
-    timestamp: null
+  const [activeStep, setActiveStep] = useState(() => {
+    return Number(localStorage.getItem('activeStep')) || 1;
   });
 
-  const triggerCrash = () => {
-    setSimState(prev => ({
-      ...prev,
-      crashed: true,
-      crashCount: prev.crashCount + 1,
-      timestamp: new Date().toISOString()
-    }));
+  const [simState, setSimState] = useState(() => {
+    try {
+      const saved = localStorage.getItem('simState');
+      return saved ? JSON.parse(saved) : {
+        crashed: false,
+        resolved: false,
+        crashCount: 0,
+        timestamp: null
+      };
+    } catch {
+      return { crashed: false, resolved: false, crashCount: 0, timestamp: null };
+    }
+  });
+
+  // Persistir simState en localStorage cada vez que cambie
+  const updateSimState = (newState) => {
+    setSimState(newState);
+    localStorage.setItem('simState', JSON.stringify(newState));
   };
 
-  const resolveIncident = () => {
-    setSimState(prev => ({
-      ...prev,
-      resolved: true
-    }));
+  const handleSetActiveStep = (step) => {
+    setActiveStep(step);
+    localStorage.setItem('activeStep', step);
   };
+
+  const triggerCrash = async () => {
+    try {
+      await fetch('http://localhost:3001/api/simular-crash', { method: 'POST' });
+      console.log("Crash guardado en MySQL exitosamente");
+    } catch (err) {
+      console.error("Error conectando con el backend:", err);
+    }
+
+    const newState = {
+      ...simState,
+      crashed: true,
+      crashCount: simState.crashCount + 1,
+      timestamp: new Date().toISOString()
+    };
+    updateSimState(newState);
+  };
+
+  const resolveIncident = async () => {
+    try {
+      await fetch('http://localhost:3001/api/incidentes/resolver', { method: 'POST' });
+      console.log("Incidentes resueltos en MySQL");
+    } catch (err) {
+      console.error("Error al resolver:", err);
+    }
+
+    const newState = { ...simState, resolved: true };
+    updateSimState(newState);
+  };
+
 
   return (
     <div className="app-container">
-      <Sidebar activeStep={activeStep} setActiveStep={setActiveStep} />
+      <Sidebar activeStep={activeStep} setActiveStep={handleSetActiveStep} />
       
       <main className="main-content">
         {activeStep === 1 && (
           <Step1MobileCrash 
             simState={simState} 
             triggerCrash={triggerCrash} 
-            nextStep={() => setActiveStep(2)} 
+            nextStep={() => handleSetActiveStep(2)}
+            resetSim={() => {
+              const fresh = { crashed: false, resolved: false, crashCount: 0, timestamp: null };
+              updateSimState(fresh);
+              localStorage.removeItem('simState');
+            }}
           />
         )}
         

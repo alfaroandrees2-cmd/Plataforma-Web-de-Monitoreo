@@ -1,7 +1,33 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Ticket, User, Clock, AlertTriangle } from 'lucide-react';
 
 function Step3IncidentManagement({ simState }) {
+  const [incidentes, setIncidentes] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchIncidentes = () => {
+      fetch('http://localhost:3001/api/incidentes')
+        .then(res => res.json())
+        .then(data => {
+          // Filtrar si queremos mostrar todos, o solo los no resueltos.
+          // En este caso, mostraremos todos los que vengan del backend.
+          setIncidentes(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Error fetching incidentes", err);
+          setLoading(false);
+        });
+    };
+
+    setLoading(true);
+    fetchIncidentes(); // Fetch inicial
+    const interval = setInterval(fetchIncidentes, 3000); // Polling cada 3 segundos
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="flex flex-col h-full">
       <div className="panel-header mb-4">
@@ -18,48 +44,69 @@ function Step3IncidentManagement({ simState }) {
           <span className="bg-gray-800 text-gray-300 px-3 py-1 rounded-full text-sm">Mostrando: Abiertos</span>
         </div>
 
-        {!simState.crashed ? (
+        {loading && incidentes.length === 0 ? (
+          <div className="text-center text-muted py-12">Cargando incidentes desde MySQL...</div>
+        ) : incidentes.length === 0 ? (
           <div className="text-center text-muted py-12">
-             No hay incidentes críticos actuales. El sistema opera dentro del SLA esperado.
+             No hay incidentes críticos registrados en la base de datos.
           </div>
         ) : (
-          <div className={`border ${simState.resolved ? 'border-green-500/50 bg-green-900/10' : 'border-red-500/50 bg-red-900/10'} rounded-lg p-6`}>
-            
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <span className={`px-2 py-1 text-xs font-bold rounded ${simState.resolved ? 'bg-green-600 text-white' : 'bg-red-600 text-white'}`}>
-                    PRIORIDAD: ALTA
-                  </span>
-                  <span className="text-lg font-bold text-cyan">#INC-2026-0892</span>
-                </div>
-                <h3 className="text-xl font-bold text-main mb-1">
-                  Crash Masivo - OutOfMemory en módulo de sincronización
-                </h3>
-                <div className="flex items-center gap-4 text-sm text-muted">
-                  <span className="flex items-center gap-1"><AlertTriangle size={14}/> Región: Piura</span>
-                  <span className="flex items-center gap-1"><User size={14}/> Asignado a: Equipo Desarrollo Móvil</span>
-                  <span className="flex items-center gap-1"><Clock size={14}/> Creado: Automático (Hace 2 min)</span>
-                </div>
-              </div>
+          <div className="flex flex-col gap-6">
+            {incidentes.map(incidente => {
+              const isResolved = incidente.estado_incidente === 'RESUELTO' || simState.resolved;
+              const cardClass = isResolved ? 'incident-card resolved' : 'incident-card critical';
+              const badgeClass = isResolved ? 'badge badge-resolved' : 'badge badge-critical';
+              const stateText = isResolved ? 'RESUELTO' : 'ASIGNADO';
 
-              <div className="text-right">
-                <div className="text-sm font-bold text-muted mb-1">ESTADO</div>
-                <div className={`text-xl font-bold ${simState.resolved ? 'text-green' : 'text-orange'}`}>
-                  {simState.resolved ? 'RESUELTO' : 'ASIGNADO'}
-                </div>
-              </div>
-            </div>
+              return (
+                <div key={incidente.incidente_id} className={cardClass}>
+                  
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className={badgeClass}>
+                          PRIORIDAD: {incidente.prioridad}
+                        </span>
+                        <span className="text-lg font-bold text-cyan" style={{ letterSpacing: '1px' }}>#{incidente.codigo}</span>
+                      </div>
+                      <h3 className="text-2xl font-bold text-main mb-2" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
+                        {incidente.titulo}
+                      </h3>
+                      <div className="flex items-center gap-4 text-sm text-muted mt-3">
+                        <span className="flex items-center gap-1"><AlertTriangle size={15} style={{ color: 'var(--accent-orange)' }}/> {incidente.descripcion}</span>
+                        {incidente.EquipoSoporte && (
+                          <span className="flex items-center gap-1"><User size={15} style={{ color: 'var(--accent-blue)' }}/> Asignado a: {incidente.EquipoSoporte.nombre}</span>
+                        )}
+                        <span className="flex items-center gap-1"><Clock size={15} style={{ color: 'var(--accent-cyan)' }}/> {new Date(incidente.fecha_creacion).toLocaleString()}</span>
+                      </div>
+                    </div>
 
-            <div className="bg-[#0f172a] rounded p-4 border border-border-color">
-              <h4 className="text-sm font-bold text-muted mb-2">TRAZA TÉCNICA ADJUNTA (Automática)</h4>
-              <pre className="text-xs text-red-400 font-mono overflow-x-auto">
-{`Exception in thread 'main' java.lang.OutOfMemoryError: 
-Failed to allocate a 157286400 byte allocation with 4194304 free bytes
-  at com.corp.app.DataSyncController.sync(DataSyncController.java:45)
-  at com.corp.app.MainActivity.onSyncClick(MainActivity.java:112)`}
-              </pre>
-            </div>
+                    <div className="text-right">
+                      <div className="text-xs font-bold text-muted mb-1" style={{ letterSpacing: '1px' }}>ESTADO ACTUAL</div>
+                      <div className={`text-2xl font-bold ${isResolved ? 'text-green' : 'text-orange'}`} style={{ textShadow: isResolved ? '0 0 15px rgba(0,255,135,0.4)' : '0 0 15px rgba(255,140,0,0.4)' }}>
+                        {stateText}
+                      </div>
+                    </div>
+                  </div>
+
+                  {incidente.Alerta && incidente.Alerta.regla_itil && (
+                    <div className="log-box">
+                      <h4 className="text-xs font-bold text-muted mb-2 flex items-center gap-2">
+                        <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: 'var(--accent-red)', boxShadow: '0 0 5px var(--accent-red)' }}></span> 
+                        REGLA ITIL DISPARADA AUTOMÁTICAMENTE
+                      </h4>
+                      <pre className="text-sm font-mono overflow-x-auto" style={{ color: '#ff7b00' }}>
+                        &gt; Evaluando regla: {incidente.Alerta.regla_itil}
+                        <br/>
+                        &gt; Condición de umbral superada: {incidente.Alerta.umbral}
+                        <br/>
+                        <span style={{ color: '#00ff87' }}>&gt; Acción ejecutada: Incidente creado exitosamente.</span>
+                      </pre>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
