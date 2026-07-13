@@ -55,13 +55,16 @@ function App() {
       console.error("Error conectando con el backend:", err);
     }
 
-    const newState = {
-      ...simState,
-      crashed: true,
-      crashCount: simState.crashCount + 1,
-      timestamp: new Date().toISOString()
-    };
-    updateSimState(newState);
+    setSimState((prevState) => {
+      const newState = {
+        ...prevState,
+        crashed: true,
+        crashCount: prevState.crashCount + 1,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('simState', JSON.stringify(newState));
+      return newState;
+    });
   };
 
   const resolveIncident = async () => {

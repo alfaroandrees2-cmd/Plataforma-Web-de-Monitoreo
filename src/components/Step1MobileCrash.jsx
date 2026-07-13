@@ -129,11 +129,19 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
                   <AlertTriangle size={32} className="text-[#b91c1c] mx-auto mb-2" />
                   <h3 className="font-bold mb-1">Error en la aplicación</h3>
                   <p className="text-sm text-gray-600">No se pudo completar el envío. Revisa la conexión y vuelve a intentar.</p>
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="mt-4 px-4 py-2 rounded border border-gray-600 bg-white text-gray-700 hover:border-gray-400 hover:text-slate-900 transition-colors text-sm"
+                  >
+                    ↺ Reiniciar aplicación
+                  </button>
                 </div>
               )}
             </div>
             <div className="mobile-footer p-4">
               <button 
+                type="button"
                 className="btn-sync w-full"
                 onClick={handleSync}
                 disabled={syncing || simState.crashed}
@@ -159,18 +167,26 @@ function Step1MobileCrash({ simState, triggerCrash, nextStep, resetSim }) {
             ))}
           </div>
           
-          {simState.crashed && logs.length > 5 && (
+          {simState.crashed && (
             <div className="mt-6">
               <div className="bg-[#381b1f] border border-[#fca5a5] p-4 rounded-lg">
-                <h4 className="text-[#f87171] font-bold mb-2">Evento Crítico Capturado</h4>
-                <p className="text-sm text-slate-200">Metadata enviada a NOC: Dispositivo (Samsung S21), SO (Android 12), Región (Piura).</p>
+                {logs.length > 5 ? (
+                  <>
+                    <h4 className="text-[#f87171] font-bold mb-2">Evento Crítico Capturado</h4>
+                    <p className="text-sm text-slate-200">Metadata enviada a NOC: Dispositivo (Samsung S21), SO (Android 12), Región (Piura).</p>
+                  </>
+                ) : (
+                  <div className="text-sm text-slate-200 mb-3">Se detectó un error en el envío. Puedes reiniciar la app móvil para intentar nuevamente.</div>
+                )}
                 <div className="flex gap-3 mt-4">
-                  <button 
-                    onClick={nextStep}
-                    className="flex-1 bg-[#933b3b] hover:bg-[#a85555] text-white px-4 py-2 rounded transition-colors"
-                  >
-                    Ver impacto en el dashboard NOC →
-                  </button>
+                  {logs.length > 5 && (
+                    <button 
+                      onClick={nextStep}
+                      className="flex-1 bg-[#933b3b] hover:bg-[#a85555] text-white px-4 py-2 rounded transition-colors"
+                    >
+                      Ver impacto en el dashboard NOC →
+                    </button>
+                  )}
                   <button 
                     onClick={handleReset}
                     className="px-4 py-2 rounded border border-gray-600 text-gray-400 hover:border-gray-400 hover:text-white transition-colors text-sm"
