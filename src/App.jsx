@@ -6,6 +6,7 @@ import Step2RealtimeDashboard from './components/Step2RealtimeDashboard';
 import Step3IncidentManagement from './components/Step3IncidentManagement';
 import Step4UXMetrics from './components/Step4UXMetrics';
 import Step5Resolution from './components/Step5Resolution';
+import Step6Knowledge from './components/Step6Knowledge';
 
 function App() {
   const [activeStep, setActiveStep] = useState(() => {
@@ -139,6 +140,9 @@ function App() {
             simState={simState} 
             resolveIncident={resolveIncident} 
           />
+        )}
+        {activeStep === 6 && (
+          <Step6Knowledge />
         )}
       </main>
     </div>

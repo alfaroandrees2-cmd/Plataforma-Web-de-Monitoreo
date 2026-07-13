@@ -1,5 +1,5 @@
 import React from 'react';
-import { Smartphone, Activity, Ticket, LineChart, CheckCircle2 } from 'lucide-react';
+import { Smartphone, Activity, Ticket, LineChart, CheckCircle2, BookOpen } from 'lucide-react';
 
 const steps = [
   { id: 1, label: 'Generación de Evento', icon: <Smartphone size={18} /> },
@@ -7,13 +7,14 @@ const steps = [
   { id: 3, label: 'Gestión de Incidentes', icon: <Ticket size={18} /> },
   { id: 4, label: 'Degradación UX', icon: <LineChart size={18} /> },
   { id: 5, label: 'Resolución y Normalización', icon: <CheckCircle2 size={18} /> },
+  { id: 6, label: 'Base de Conocimiento', icon: <BookOpen size={18} /> },
 ];
 
 function Sidebar({ activeStep, setActiveStep, user, onLogout }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-title">
-        <Activity color="var(--accent-purple)" />
+         {/*<Activity color="var(--accent-purple)" />*/}
         <span>Panel de navegación</span>
       </div>
       

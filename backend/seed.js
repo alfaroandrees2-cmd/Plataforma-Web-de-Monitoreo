@@ -101,7 +101,7 @@ async function main() {
   });
 
   // 8. Crear Incidente
-  await prisma.incidente.create({
+  const incidente = await prisma.incidente.create({
     data: {
       codigo: 'INC-2026-001',
       titulo: 'Latencia excesiva en checkout',
@@ -113,6 +113,17 @@ async function main() {
       alerta_id: alerta.alerta_id,
       equipo_id: equipo.equipo_id,
       sla_id: sla.sla_id,
+    },
+  });
+
+  // 9. Crear un registro de conocimiento asociado
+  await prisma.registroConocimiento.create({
+    data: {
+      codigo: 'KB-2026-001',
+      titulo: 'Hotfix para latencia en checkout',
+      solucion: 'Se redujo el tamaño del lote de sincronización y se liberó memoria al finalizar cada batch. Esto normalizó la latencia y evitó saturación de recursos durante el proceso de pago.',
+      fecha_creacion: new Date(),
+      incidente_id: incidente.incidente_id,
     },
   });
 

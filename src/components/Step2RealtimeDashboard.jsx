@@ -211,9 +211,11 @@ function Step2RealtimeDashboard() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="time" stroke="#94a3b8" tickLine={false} axisLine={false} dy={10} />
+                <XAxis dataKey="time" tickFormatter={(value) => new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} stroke="#94a3b8" tickLine={false} axisLine={false} dy={10} />
                 <YAxis stroke="#94a3b8" tickLine={false} axisLine={false} dx={-10} />
                 <Tooltip
+                  formatter={(value) => [value, 'Eventos/min']}
+                  labelFormatter={(label) => new Date(label).toLocaleString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                   contentStyle={{ backgroundColor: 'rgba(10,10,15,0.9)', backdropFilter: 'blur(10px)', borderColor: 'rgba(255,255,255,0.1)', borderRadius: '8px' }}
                   itemStyle={{ color: '#fff', fontWeight: 'bold' }}
                 />

@@ -157,33 +157,25 @@ app.get('/api/metricas/dashboard', async (req, res) => {
 
     const isDegraded = incidentesAbiertos > 0;
 
-    // Datos del gráfico
-    const baseData = [
-      { time: '10:00', events: 12 },
-      { time: '10:05', events: 15 },
-      { time: '10:10', events: 10 },
-      { time: '10:15', events: 14 },
-      { time: '10:20', events: 18 },
-    ];
+    const now = localNow();
+    const points = [35, 30, 25, 20, 15, 10, 5, 0];
+    const baseEvents = [12, 15, 10, 14, 18, 11, 13, 16];
+    const anomalyEvents = [12, 15, 10, 14, 18, 150, 210, 180];
 
-    if (isDegraded) {
-      baseData.push(
-        { time: '10:25', events: 150 },
-        { time: '10:30', events: 210 },
-        { time: '10:35', events: 180 }
-      );
-    } else {
-      baseData.push(
-        { time: '10:25', events: 11 },
-        { time: '10:30', events: 13 },
-        { time: '10:35', events: 16 }
-      );
-    }
+    const chartData = points.map((minutesAgo, index) => {
+      const timestamp = new Date(now.getTime() - minutesAgo * 60_000);
+      return {
+        time: timestamp.toISOString(),
+        events: isDegraded ? anomalyEvents[index] : baseEvents[index]
+      };
+    });
+
+    const currentEventsPerMinute = chartData[chartData.length - 1].events;
 
     res.json({
       isDegraded,
-      chartData: baseData,
-      currentEventsPerMinute: isDegraded ? 210 : 14,
+      chartData,
+      currentEventsPerMinute,
       stats: {
         total: totalIncidentes,
         abiertos: incidentesAbiertos,
@@ -214,6 +206,19 @@ app.get('/api/metricas/ux', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error obteniendo ux data' });
+  }
+});
+
+app.get('/api/conocimiento', async (req, res) => {
+  try {
+    const registros = await prisma.registroConocimiento.findMany({
+      orderBy: { fecha_creacion: 'desc' },
+      include: { Incidente: true }
+    });
+    res.json(registros);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Error obteniendo registros de conocimiento' });
   }
 });
 
@@ -255,7 +260,27 @@ app.post('/api/incidentes/resolver', async (req, res) => {
       data: { fecha_resolucion: deployTimestamp }
     });
 
-    res.json({ success: true, count: incidentesActivos.length, hotfixId: hotfix.hotfix_id.toString(), version: hotfix.version });
+    const registrosConocimiento = await Promise.all(
+      incidentesActivos.map(inc =>
+        prisma.registroConocimiento.create({
+          data: {
+            codigo: `KB-${hotfix.version}-${inc.incidente_id}`,
+            titulo: `Resolución automática ${hotfix.version} para ${inc.titulo}`,
+            solucion: `Se aplicó el hotfix ${hotfix.version} para resolver el incidente ${inc.codigo}. El parche normalizó la latencia y estabilizó el sistema de monitoreo. Se actualizó el estado a resuelto y se registró la acción en el historial del equipo.`, 
+            fecha_creacion: localNow(),
+            incidente_id: inc.incidente_id
+          }
+        })
+      )
+    );
+
+    res.json({
+      success: true,
+      count: incidentesActivos.length,
+      hotfixId: hotfix.hotfix_id.toString(),
+      version: hotfix.version,
+      knowledgeRecords: registrosConocimiento.length
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Error resolviendo incidentes' });
